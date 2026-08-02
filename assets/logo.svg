@@ -1,18 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="kwaro logo">
-  <g fill="none" stroke="#111317" stroke-linecap="round" stroke-linejoin="round">
-    <!-- K stem (also the antenna base) -->
-    <line x1="80" y1="212" x2="80" y2="40" stroke-width="26"/>
-    <!-- K upper arm -->
-    <line x1="80" y1="126" x2="202" y2="70" stroke-width="26"/>
+  <g fill="#0B0D10">
+    <!-- K vertical stem (also antenna base) -->
+    <rect x="68" y="36" width="24" height="176"/>
+    <!-- K upper arm (angular, mitred via polygon) -->
+    <polygon points="92,116 204,60 204,84 92,140"/>
     <!-- K lower arm -->
-    <line x1="80" y1="126" x2="202" y2="212" stroke-width="26"/>
-    <!-- Antenna stalk continues above the K, slightly thicker -->
-    <line x1="80" y1="126" x2="80" y2="40" stroke-width="26"/>
-    <!-- Antenna left branch -->
-    <path d="M80 44 Q 58 30 50 20" stroke-width="11"/>
-    <circle cx="50" cy="20" r="8" fill="#111317" stroke="none"/>
-    <!-- Antenna right branch -->
-    <path d="M80 44 Q 104 30 112 20" stroke-width="11"/>
-    <circle cx="112" cy="20" r="8" fill="#111317" stroke="none"/>
+    <polygon points="92,116 204,180 204,204 92,140"/>
+    <!-- Antenna left branch: straight diagonal + square tip -->
+    <polygon points="92,48 64,20 52,32 80,60"/>
+    <rect x="44" y="12" width="16" height="16"/>
+    <!-- Antenna right branch: straight diagonal + square tip -->
+    <polygon points="92,48 120,20 132,32 104,60"/>
+    <rect x="124" y="12" width="16" height="16"/>
   </g>
 </svg>
