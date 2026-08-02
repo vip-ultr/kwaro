@@ -2,7 +2,7 @@
 
 **A free, open-source security scanner for every developer, on every OS.**
 
-kwaro ("bug" in Hausa) is a worldwide, community-driven project. It helps you find
+kwaro is a worldwide, community-driven project. It helps you find
 real vulnerabilities in your code by chatting with a local AI agent, no paid APIs
 required, no Docker stacks, no lock-in. It runs anywhere: Windows, macOS, Linux, and
 WSL.
