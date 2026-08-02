@@ -11,94 +11,110 @@ with a `tools` array (OpenAI-style function schema). Confirmed working with
 `qwen3` and `llama3.2` in Ollama docs.
 
 **Caveat (verified, important):** tool-calling reliability varies sharply by model.
-Community/benchmark consensus (2025-2026):
-- Stable for tool calling: Qwen3 (8B/14B/32B), Llama 3.1/3.3.
-- Flaky on small models (7B-class): tool_calls often malformed or omitted.
-
-**Decision/impact:**
-- Default recommended model should be Qwen3:14B or Llama3.1:8B+ (NOT a tiny 7B) for
-  reliable tool use. Document this. Smaller models = chat only, degraded agent.
-- The agent loop must be robust to malformed/omitted tool calls (retry, parse
-  fallback, never assume the model emits valid JSON). This is a build requirement,
-  not optional.
-- For users without a capable local model, the agent still works in "static-only"
-  mode (no model needed), so tool-calling is an enhancement, not a hard dependency.
+Community/benchmark consensus (2025-2026): stable for Qwen3 (8B/14B/32B) and
+Llama 3.1/3.3; flaky on small 7B-class models (malformed/omitted tool calls).
 
 ## 2. SARIF export — VERIFIED, low risk
 
 SARIF 2.1.0 is an OASIS standard with a published JSON schema
-(`sarif-schema-2.1.0.json`). Structure is simple: `version`, `$schema`, `runs[]`,
-each run has `tool.driver` (name, rules[]) and `results[]`
-(ruleId, level, message, locations[].physicalLocation.region, partialFingerprints).
-`partialFingerprints` is exactly what we need for de-duplication across rescans.
-
-**Decision/impact:**
-- Emit SARIF 2.1.0. Use `partialFingerprints` (hash of ruleId+file+line+snippet) as
-  our dedup key. Low risk, high credibility (GitHub code scanning ingests SARIF).
-- This is a real differentiator vs tools that only print text.
+(`sarif-schema-2.1.0.json`). Structure: `version`, `$schema`, `runs[]`, each run
+has `tool.driver` (name, rules[]) and `results[]` (ruleId, level, message,
+locations[].physicalLocation.region, partialFingerprints). `partialFingerprints`
+is our de-duplication key across rescans.
 
 ## 3. Local LLM PoC / test generation (THE differentiator + THE risk) — PARTIAL
 
-This is what makes kwaro "mind-blowing" (proof, not opinion). It is also the
-highest-risk claim.
-
-**Verified concerns from research:**
-- LLMs struggle with long-horizon, multi-step security tasks. Benchmarks
-  (EXPLOITBENCH for V8 exploitation, SEC-bench Pro, ACL 2025 vuln-agent papers)
-  show meaningful gaps in exploit/proof correctness.
-- A 2025 study found ~40% of GitHub Copilot code completions were vulnerable,
-  illustrating generation-quality risk generally.
-- Generating a PoC that *actually compiles and reproduces* requires the model to
-  understand build context, dependencies, and runtime, which local 7B-14B models
-  do imperfectly.
-
-**Decision/impact (how we de-risk it):**
-- v1 = GENERATE the PoC/test file only; do NOT auto-execute by default. User reviews.
-- When execution is enabled (opt-in, sandboxed temp dir, no network, no writes
-  outside sandbox), treat a non-reproducing PoC as "unverified," not "confirmed."
-  Never present a generated PoC as proof unless it runs and fails as expected.
-- Quality improves with model size; recommend 14B+ for PoC generation. Smaller
-  models may produce plausible-but-broken PoCs, so label confidence honestly.
-- Combine with static analysis: the model explains/contextualizes findings the
-  static checks already flagged, which is more reliable than pure generation.
+Benchmarks (EXPLOITBENCH for V8 exploitation, SEC-bench Pro, ACL 2025 vuln-agent
+papers) show LLMs struggle with long-horizon exploit correctness. A 2025 study
+found ~40% of GitHub Copilot completions were vulnerable. Generating a PoC that
+actually compiles and reproduces requires build/runtime understanding local 7B-14B
+models do imperfectly.
 
 ## 4. Cross-OS, zero-dep, single-language — VERIFIED, low risk
 
 Pure Python stdlib, `pathlib`, `subprocess` with list args, no compiled extensions.
-Runs on Windows/macOS/Linux/WSL. This is the safe part of the plan; open-kritt's
-pain (Prisma engine, esbuild per-OS) does not apply to us.
+Runs on Windows/macOS/Linux/WSL.
 
 ## 5. Free-first / offline — VERIFIED, strong position
 
-Ollama runs fully offline, no key, no cyber-safety blocks. Paid providers (OpenAI,
-Anthropic) may refuse security-research prompts; local models do not. This is both
-a cost win and a reliability win for our exact use case.
+Ollama runs fully offline, no key, no cyber-safety blocks. Paid providers may
+refuse security-research prompts; local models do not.
 
 ## 6. Detection breadth vs incumbents — HONEST GAP
 
-We will NOT match Semgrep/CodeQL/SAST tools on day one for raw rule coverage.
-Those have years of tuning. Our edge is: free + local + agentic triage + PoC proof
-+ any-domain via prompts. We should NOT claim "finds more than X." We claim
-"free, local, proves findings, works on any code."
+We will not match Semgrep/CodeQL/SAST on day-one rule coverage. Our edge is free +
+local + agentic triage + PoC proof + any-domain via prompts. Claim "free, local,
+proves findings, works on any code," not "finds more than X."
 
-## Gaps to fix before/while building
+---
 
-1. **Tool-call robustness layer** (retry, malformed-JSON recovery, model-size
-   gating). Build requirement.
-2. **PoC verification honesty** (generate-only v1; executed PoCs marked unverified
-   unless they run). Build requirement.
-3. **Default model guidance** in `kwaro init` (recommend 14B-class for agent/PoC).
-4. **Static-first pipeline** (model explains static findings, not pure generation)
-   to keep false positives down.
-5. **Trust/safety copy**: scans stay local; PoC execution is sandboxed + opt-in.
-   State plainly to avoid adoption fear.
-6. **Benchmark ourselves** on a known-vulnerable repo (e.g. DWVA/Juice Shop style
-   fixtures) so we can show real recall in docs/README, not vibes.
+# Resolved solutions to the gaps (professional design)
+
+## G1. Tool-call robustness — deterministic protocol, never trust raw output
+
+- Tools defined as strict JSON schemas in `core/providers/tools.py`. After each
+  model turn, a validator checks: function name is known, arguments parse to the
+  schema, required fields present.
+- On invalid call: re-inject a system correction as a tool-result message
+  ("last tool call invalid: <reason>; retry with valid JSON") and retry up to N.
+  After N, that step falls back to static-only mode (no model tool use).
+- Capability gating: at init, check the configured model against a tier list. If
+  below a known-good tool-calling tier, warn and offer chat/static mode instead of
+  agent mode. Never assume a 7B model emits valid tool calls.
+- Streaming: accumulate the full tool_call JSON before parsing; never parse partial
+  streamed fragments.
+
+## G2. PoC honesty — explicit verification states, never implied proof
+
+- PoC lifecycle: GENERATED -> (opt) COMPILED -> (opt) EXECUTED ->
+  VERIFIED or UNVERIFIED.
+- Verification runs in a sandbox: temp dir, no network, CPU/time/memory limits,
+  restricted filesystem. A PoC is VERIFIED only if it runs AND triggers the
+  expected failure (non-zero exit / assertion / crash signature requested).
+  Otherwise UNVERIFIED, labelled clearly.
+- An UNVERIFIED PoC never auto-raises a finding's severity/confidence. The PoC is
+  supporting evidence, not authority.
+- Finding record stores the PoC file path + its run result so the user sees exactly
+  what was (or wasn't) proven.
+
+## G3. Default model guidance — curated catalog with tiers
+
+- Ship `core/providers/model_catalog.py`: tiers `agent` (tool-calling capable),
+  `chat` (explain-only), `avoid` (known-bad tool calling).
+- `kwaro init` recommends a 14B-class agent model and states RAM needs.
+- User override allowed. If a chat-tier model is chosen, agent mode is disabled with
+  a clear message.
+
+## G4. Static-first pipeline — model triages, does not invent
+
+- Order: static analyzers run first -> candidate findings with rule IDs.
+- The model is given ONLY those candidates (file + line + rule + snippet) and asked
+  to confirm/refute with reasoning. Findings without static backing are marked
+  "model-only, lower confidence."
+- This keeps false positives down: the model explains real signals, not imagined ones.
+
+## G5. Trust/safety — explicit, unavoidable communication
+
+- README and first-run output state: scans run locally; code is not uploaded; PoC
+  execution is opt-in, sandboxed, disabled by default.
+- Ship `SECURITY.md` (threat model) documenting capabilities, limits, sandbox bounds.
+- `kwaro scan --execute-poc` requires an explicit flag + printed warning; never silent.
+
+## G6. Benchmark ourselves — fixture repo + eval in the repo
+
+- Ship `tests/fixtures/vuln-repo/` seeded with known vulnerabilities (one per rule:
+  secrets, SQLi, XSS, traversal, auth; plus per-domain profiles).
+- An eval script runs kwaro and asserts each seeded bug is found (recall) and reports
+  false-positive count on clean code.
+- README shows real numbers ("found 11/12 seeded vulns on model X, 0 FP on clean
+  code") instead of vibes. This is also the launch/demo material.
+
+---
 
 ## Verdict
 
-The plan is technically sound and the differentiators (free/local, SARIF, PoC
-proof, any-domain) are real and verifiable. The two risks, tool-call reliability
-and PoC correctness, are manageable with the mitigations above. The biggest threat
-to "mind-blowing + stars" is execution quality of the PoC layer, so we invest there
-and we are honest about confidence.
+Plan is technically sound. Differentiators (free/local, SARIF, PoC proof, any-domain)
+are real and verifiable. The two real risks, tool-call reliability (G1) and PoC
+correctness (G2), are resolved by deterministic validation and explicit verification
+states. We build G1/G2/G4 into the engine from day one; G3/G5/G6 are setup, docs,
+and eval that make the product trustworthy and demonstrable.
