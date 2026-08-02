@@ -61,13 +61,17 @@ kwaro/
 
 ## Data model (summary)
 
-- `Finding`: id, scan_id, title, severity (critical/high/medium/low/info),
-  file, line, snippet, description, suggested_fix, poc (path or text),
-  rule_id/source, confidence.
-- `Scan`: id, target, commit, provider, model, created_at, status, finding_count.
-- `StepResult`: step id, raw model output, tool calls, extracted findings.
+Exact fields are LOCKED in docs/locked-decisions.md (L7). Summary:
 
-(Exact fields finalized in code; this is the intent.)
+- `Finding`: id, scan_id, title, severity, cwe, rule_id, source(static|model|static+model),
+  confidence(low|med|high), file, line_start/end, column, snippet, description,
+  suggested_fix, poc_path, poc_state(none|generated|verified|unverified), fingerprint, created_at.
+- `Scan`: id, target, target_type(local|git), commit, provider, model, profile, status,
+  started_at, finished_at, finding_count.
+- `StepResult`: id, scan_id, step_index, name, raw_output, tool_calls(json), findings(json), duration_ms.
+
+Severity uses CVSS-style bands + composite confidence (L3). Dedup by root-cause
+fingerprint (L4). All design is locked in locked-decisions.md.
 
 ## Provider abstraction
 
@@ -83,20 +87,19 @@ Paid providers may block security-research prompts under cyber-safety policies.
 Local models do not.
 This is why free-default is both cheaper AND more reliable for this job.
 
-## Static analysis
+## Static analysis (locked: hybrid, L2)
 
-Pure-Python analyzers (regex/AST), zero heavy dependencies in v1:
-- secrets (hardcoded keys, tokens)
-- injection (SQLi, command injection)
-- XSS
-- path traversal
-- auth gaps (missing checks, weak comparisons)
-- per-domain profiles: fintech (PCI/auth), blockchain/Solidity (reentrancy,
-  overflow, signature replay, oracle manipulation), AI apps (prompt injection,
-  unsafe deserialization of model output).
+- **v1 (zero extra deps):** regex/line-heuristic analyzers for secrets, injection
+  (SQLi/command), XSS, path traversal, auth gaps, across Python/JS/TS/Go/Java/PHP/
+  Solidity/Rust where patterns apply. This is the always-available fallback layer.
+- **Optional upgrade:** tree-sitter per-language grammars for AST/multi-line data-flow
+  detection (off by default, install on demand). Not required to run.
+- Per-domain profiles: fintech (PCI/auth), blockchain/Solidity (reentrancy, overflow,
+  signature replay, oracle manipulation), AI apps (prompt injection, unsafe
+  deserialization of model output). Profiles are plain prompt+rule files (GC5).
 
 Static checks run FIRST and reduce false positives; the model then triages and
-explains only real candidates.
+explains only real candidates (G4 static-first pipeline).
 
 ## PoC / test generation (the differentiator)
 
