@@ -10,8 +10,9 @@ frontend service, no Postgres, no Docker requirement to run. A scan is executed
 as a pipeline of anonymous, provider-attached **steps**, run as jobs, and
 surfaced to the user as **scans** and **findings**.
 
-This mirrors the sound parts of open-kritt (anonymous workflow steps executed as
-jobs, shown as scans/findings) while being leaner and free-first.
+This mirrors the sound parts of other serious security products (anonymous
+workflow steps executed as jobs, shown as scans/findings) while being leaner and
+free-first.
 
 ## Components
 
@@ -78,8 +79,8 @@ A single `Provider` interface: `complete(messages, tools) -> response`.
 - `anthropic.py` is a thin second adapter for Claude users (different format).
 - Default provider: Ollama local. No key, no internet.
 
-Paid providers may block security-research prompts under cyber-safety policies
-(open-kritt literally has a `cyber_safety_blocked` failure). Local models do not.
+Paid providers may block security-research prompts under cyber-safety policies.
+Local models do not.
 This is why free-default is both cheaper AND more reliable for this job.
 
 ## Static analysis

@@ -2,7 +2,8 @@
 
 kwaro is a free, open-source security scanner for every developer, on every OS.
 It helps you find real vulnerabilities in code by chatting with a local AI agent,
-no paid APIs required, no Docker stacks, no lock-in.
+no paid APIs required, no Docker stacks, no lock-in. It is built to outperform
+heavy, paid, localhost-only scanners on the things that matter.
 
 ## Positioning
 
@@ -10,15 +11,15 @@ kwaro is a worldwide, community-driven project. The name stands on its own; the
 project is for everyone, regardless of region.
 
 We are building something that beats heavy, paid, localhost-only scanners
-(notably open-kritt) on the things that matter:
+on the things that matter:
 
 - **100% free by default.** Runs on a local model via Ollama. No credit card, no
   account, fully offline. Paid models (OpenAI, Groq, OpenRouter, etc.) are opt-in
   through a standard OpenAI-compatible API.
 - **Cross-platform.** Pure-Python, zero native dependencies. One codebase runs on
   Windows, macOS, Linux, and WSL.
-- **One language, lean infra.** No polyglot stack (open-kritt uses React + Node +
-  Prisma + Postgres + a Python engine + Docker). kwaro is Python only, SQLite only,
+- **One language, lean infra.** No polyglot stack (no React + Node + Prisma +
+  Postgres + separate engine + Docker). kwaro is Python only, SQLite only,
   no Docker required to run.
 - **Proof, not opinion.** Findings are backed by a generated test or proof-of-concept
   (PoC) where possible, not just a model's guess. This is our core differentiator.
