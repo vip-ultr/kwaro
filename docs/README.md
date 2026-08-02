@@ -23,6 +23,7 @@ as it grows.
 - `release.md` — versioning, changelog, PyPI, cross-OS CI.
 - `roadmap.md` — phased build plan.
 - `brand.md` — palette + logo.
+- `content.md` — voice, UI strings, finding/chat copy, error text, launch post.
 
 ## Community
 
