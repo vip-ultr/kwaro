@@ -1,16 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="kwaro logo">
-  <g fill="#0B0D10">
-    <!-- K vertical stem (also antenna base) -->
-    <rect x="68" y="36" width="24" height="176"/>
-    <!-- K upper arm (angular, mitred via polygon) -->
-    <polygon points="92,116 204,60 204,84 92,140"/>
-    <!-- K lower arm -->
-    <polygon points="92,116 204,180 204,204 92,140"/>
-    <!-- Antenna left branch: straight diagonal + square tip -->
-    <polygon points="92,48 64,20 52,32 80,60"/>
-    <rect x="44" y="12" width="16" height="16"/>
-    <!-- Antenna right branch: straight diagonal + square tip -->
-    <polygon points="92,48 120,20 132,32 104,60"/>
-    <rect x="124" y="12" width="16" height="16"/>
-  </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generator: visioncortex VTracer 0.6.12 -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="288" height="399" viewBox="364 88 288 399">
+<path d="M0,0 L39,0 L40,25 L52,41 L65,57 L76,71 L89,87 L94,94 L78,95 L66,95 L58,85 L46,68 L32,48 L27,41 L27,39 L0,39 Z " fill="#0B0D10" transform="translate(364,88)"/>
+<path d="M0,0 L39,0 L39,39 L13,39 L11,43 L-1,60 L-14,78 L-25,93 L-27,95 L-54,95 L-48,87 L-37,73 L-25,58 L-15,45 L-1,27 Z " fill="#0B0D10" transform="translate(612,88)"/>
+<path d="M0,0 L65,0 L66,1 L66,100 L71,95 L83,81 L94,67 L107,51 L120,35 L133,18 L147,1 L148,0 L231,0 L227,6 L218,16 L209,27 L198,40 L189,51 L178,64 L169,75 L157,89 L146,102 L134,116 L124,127 L115,138 L106,148 L97,159 L84,174 L75,185 L66,196 L65,292 L0,292 Z " fill="#0B0D10" transform="translate(402,196)"/>
+<path d="M0,0 L5,5 L18,23 L30,40 L43,58 L54,74 L66,91 L78,108 L90,125 L102,142 L114,159 L117,163 L117,165 L38,165 L25,147 L12,128 L-1,110 L-12,94 L-26,74 L-42,51 L-40,46 L-28,33 L-19,22 L-7,8 Z " fill="#0B0D10" transform="translate(536,323)"/>
 </svg>
