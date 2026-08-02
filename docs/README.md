@@ -1,5 +1,8 @@
 # kwaro Documentation
 
+> **New here / new session?** Start with [`BUILD.md`](../BUILD.md) (repo root). It
+> points to the locked decisions and the exact next task (Phase 1).
+
 This folder is the source of truth for kwaro's plan, architecture, and decisions.
 Everything is documented here before implementation, so the project stays coherent
 as it grows.

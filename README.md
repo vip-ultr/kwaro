@@ -54,6 +54,11 @@ kwaro scan ./my-repo         # static-first scan, free, offline
 kwaro chat ./my-repo         # conversationally find, prove, fix, verify
 ```
 
+## Build
+
+Starting implementation? Read [`BUILD.md`](BUILD.md) first. It points to the locked
+decisions and the exact next task (Phase 1).
+
 ## Docs
 
 All planning, research, and locked decisions are in [`docs/`](docs/). Community
