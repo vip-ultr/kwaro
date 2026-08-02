@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="kwaro hex node glyph">
+  <g fill="none" stroke="#0B0D10" stroke-width="12" stroke-linejoin="miter">
+    <!-- outer hex node -->
+    <polygon points="120,30 194,72 194,168 120,210 46,168 46,72"/>
+    <!-- inner hex node (nested, clearly visible as negative-space ring) -->
+    <polygon points="120,78 164,102 164,144 120,168 76,144 76,102"/>
+  </g>
+  <!-- diagonal lime scan line crossing the node, endpoints just inside the hex -->
+  <line x1="58" y1="150" x2="182" y2="90" stroke="#C6F432" stroke-width="10" stroke-linecap="square"/>
+</svg>
