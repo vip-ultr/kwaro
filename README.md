@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <code>pip install kwaro</code> &nbsp;·&nbsp; runs on a local model (Ollama) with no API key and no internet, ever.
+  <code>pipx install kwaro</code> &nbsp;·&nbsp; runs on a local model (Ollama) with no API key and no internet, ever.
 </p>
 
 ---
@@ -104,26 +104,35 @@ not the model.
 
 ## Install
 
-Pick whichever is easiest on your OS. The CLI has **zero third-party dependencies**
-and one pure-Python wheel covers Windows, macOS, and Linux.
+The CLI has **zero third-party dependencies** and one pure-Python wheel covers
+Windows, macOS, and Linux. On Debian/Ubuntu and some macOS setups, system Python is
+externally managed (PEP 668), so `pip install` system-wide is blocked. Use `pipx`
+(recommended for a CLI app), `pip install --user`, a venv, or a package manager.
 
 ```bash
-# PyPI (all OS)
-pip install kwaro          # or: uv tool install kwaro
+# Recommended (isolates the app, exposes the `kwaro` command globally)
+pipx install kwaro
+
+# PyPI, into a venv or user site
+pip install kwaro            # in a venv, or: pip install --user kwaro
+uv tool install kwaro        # if you use uv
 
 # macOS / Linux
-brew install kwaro         # after: brew tap vip-ultr/kwaro
+brew install kwaro           # after: brew tap vip-ultr/kwaro
 
 # Windows
-scoop install kwaro        # after: scoop bucket add kwaro https://github.com/vip-ultr/scoop-kwaro
+scoop install kwaro         # after: scoop bucket add kwaro https://github.com/vip-ultr/scoop-kwaro
 
-kwaro init                 # detect Ollama, write config (free/offline default)
+kwaro init                   # detect Ollama, write config (free/offline default)
 ```
+
+If you used `pip install --user`, make sure `~/.local/bin` is on your PATH
+(`export PATH="$HOME/.local/bin:$PATH"`).
 
 The browser UI is an optional extra:
 
 ```bash
-pip install "kwaro[serve]" # adds fastapi, uvicorn, websockets
+pipx install "kwaro[serve]"  # or, in a venv: pip install "kwaro[serve]"
 ```
 
 For development from source:
