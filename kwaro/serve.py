@@ -6,18 +6,18 @@ Serves the hand-written static bundle and exposes:
   POST /api/scan         -> run a scan, return findings (or an export path)
   POST /api/chat         -> one chat turn (model if configured, else static note)
   WS   /ws/activity      -> live scan activity stream (optional)
-
-FastAPI/uvicorn/websockets are ONLY imported when `kwaro serve` runs, so the CLI
-stays zero-dependency (L1). If the extra isn't installed, `kwaro serve` prints a
-clear install hint instead of crashing.
+FastAPI/uvicorn/websockets/pydantic are ONLY imported when `kwaro serve` runs, so
+the CLI stays zero-dependency (L1). If the extra isn't installed, `kwaro serve` prints
+a clear install hint instead of crashing. pydantic and the request models are imported
+inside `create_app()` (not at module top) so that merely importing this module from the
+CLI entry point does not require the extra.
 
 NOTE: no `from __future__ import annotations` here on purpose. It stringifies
-annotations, which breaks FastAPI's Pydantic-model body detection for nested
-models. Models are defined at module level so FastAPI can resolve them.
+annotations, which breaks FastAPI's Pydantic-model body detection for nested models.
+The request models are defined inside `create_app()` so FastAPI can resolve them.
 """
-import os
 
-import pydantic
+import os
 
 from .core.models import Finding
 from .core.rank import composite_confidence
@@ -26,24 +26,24 @@ from . import __main__ as cli
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "web", "static")
 
 
-class ScanReq(pydantic.BaseModel):
-    target: str = ""
-    profile: str = "generic"
-    pocs: bool = False
-    rescan: bool = False
-    format: "str" = None
-
-
-class ChatReq(pydantic.BaseModel):
-    target: str = ""
-    message: str = ""
-
-
 def create_app():
     """Build and return the FastAPI app (imports the heavy deps here)."""
+    import pydantic
+    from typing import Optional
     from fastapi import FastAPI, WebSocket
     from fastapi.responses import HTMLResponse, FileResponse
     from fastapi.staticfiles import StaticFiles
+
+    class ScanReq(pydantic.BaseModel):
+        target: str = ""
+        profile: str = "generic"
+        pocs: bool = False
+        rescan: bool = False
+        format: Optional[str] = None
+
+    class ChatReq(pydantic.BaseModel):
+        target: str = ""
+        message: str = ""
 
     app = FastAPI(title="kwaro", version="0.6.0")
 

@@ -10,7 +10,7 @@ import json
 import urllib.request
 from typing import List, Optional
 
-from .base import Message, Provider, Response, ToolCall, ToolSpec
+from .base import Message, Provider, Response, ToolCall, ToolSpec, ProviderError
 
 
 def _msg_to_dict(m: Message) -> dict:
@@ -81,5 +81,28 @@ class OpenAICompat(Provider):
         )
         if self.api_key:
             req.add_header("Authorization", f"Bearer {self.api_key}")
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            return _resp_from_dict(json.loads(resp.read().decode()))
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                return _resp_from_dict(json.loads(resp.read().decode()))
+        except urllib.error.HTTPError as e:
+            body = ""
+            try:
+                body = e.read().decode(errors="ignore")
+            except Exception:
+                pass
+            hint = ""
+            if e.code == 404 and "not found" in body.lower():
+                hint = (f" Model '{self.model}' is not available at this endpoint. "
+                        f"If this is Ollama, run: ollama pull {self.model}")
+            elif e.code == 404:
+                hint = (" Endpoint not found. For Ollama, the base URL must end in '/v1' "
+                        "(e.g. http://localhost:11434/v1).")
+            raise ProviderError(
+                f"provider {self.label} returned HTTP {e.code}.{hint}",
+                status=e.code, body=body,
+            ) from e
+        except urllib.error.URLError as e:
+            raise ProviderError(
+                f"provider {self.label} connection failed: {e.reason}. "
+                f"Is the server running at {self.base_url}?"
+            ) from e

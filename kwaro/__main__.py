@@ -227,7 +227,17 @@ def cmd_chat(target: str) -> int:
                 break
             if not user_input:
                 continue
-            summary = agent.run(user_input)
+            try:
+                summary = agent.run(user_input)
+            except Exception as e:  # surface provider/model errors cleanly, not a traceback
+                from .core.providers.base import ProviderError
+                if isinstance(e, ProviderError):
+                    print(f"kwaro> provider error: {e}")
+                    if e.body:
+                        print(f"  {e.body[:400]}")
+                    print("  Fix: pull the model (ollama pull <model>) or check the base URL, then retry.")
+                    continue
+                raise
             print(f"kwaro> {summary}\n")
     except KeyboardInterrupt:
         print("\nkwaro chat: bye.")

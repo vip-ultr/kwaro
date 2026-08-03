@@ -138,14 +138,22 @@ scoop install kwaro         # after: scoop bucket add kwaro https://github.com/v
 kwaro init                   # detect Ollama, write config (free/offline default)
 ```
 
+If you only need the CLI (`scan`/`chat`), the plain install above is enough. The
+browser UI needs the `serve` extra (see below).
+
 If you used `pip install --user`, make sure `~/.local/bin` is on your PATH
 (`export PATH="$HOME/.local/bin:$PATH"`).
 
-The browser UI is an optional extra:
+The browser UI is an optional extra. If you installed the plain package, add it with
+`pipx inject kwaro fastapi uvicorn websockets` (or reinstall with the extra):
 
 ```bash
 pipx install "kwaro[serve]"  # or, in a venv: pip install "kwaro[serve]"
+# already have plain kwaro via pipx? inject the deps instead:
+pipx inject kwaro fastapi uvicorn websockets
 ```
+
+Without the extra, `kwaro serve` prints an install hint instead of failing.
 
 For development from source:
 

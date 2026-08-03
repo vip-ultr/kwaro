@@ -38,6 +38,18 @@ class ToolSpec:
     parameters: dict  # JSON-schema-like dict
 
 
+class ProviderError(Exception):
+    """Raised when a provider call fails (HTTP error, connection error, bad response).
+
+    Carries the provider's raw error body when available, so the CLI can show the
+    real cause (e.g. 'model not found') instead of a traceback.
+    """
+    def __init__(self, message: str, status: Optional[int] = None, body: str = "") -> None:
+        self.status = status
+        self.body = body
+        super().__init__(message)
+
+
 class Provider(ABC):
     @abstractmethod
     def complete(self, messages: List[Message], tools: Optional[List[ToolSpec]] = None) -> Response:
