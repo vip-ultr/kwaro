@@ -108,6 +108,17 @@ model to generate a minimal failing test or PoC. v1 generates the test/PoC file.
 Execution is behind an opt-in, sandboxed flag (run in a temp dir, no network,
 no writes outside the sandbox) and is OFF by default.
 
+## Pipeline graph (locked state machine, docs/math.md Primitive 3)
+
+The find, prove, fix, verify pipeline is a directed graph. Stages are a locked
+enum: `FIND -> PROVE -> FIX -> VERIFY -> (FIND | DONE)`. `VERIFY` loops back to
+`FIND` only if issues remain; otherwise `DONE`. `PROVE` can never be skipped
+(the graph validator rejects such traces). Implemented in `core/graph.py`.
+
+Every completed run produces a trace tau = (stage_1, stage_2, ...). The trace is
+valid iff each consecutive pair is a legal edge. This gives tamper-evident
+lineage: any saved run can be re-validated as a walk in the graph.
+
 ## Storage
 
 SQLite, one file (`~/.kwaro/kwaro.db`), zero config, cross-OS. No server, no

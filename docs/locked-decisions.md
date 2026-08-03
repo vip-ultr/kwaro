@@ -40,8 +40,20 @@ docs/decisions-unlocked.md. Build against these. Anything not here is still open
 - Finding: id, scan_id, title, severity, cwe, rule_id, source(static|model|static+model),
   confidence(low|med|high), file, line_start, line_end, column, snippet, description,
   suggested_fix, poc_path, poc_state(none|generated|verified|unverified), fingerprint, created_at.
+  MATH FIELDS (locked in docs/math.md, all persisted so the report can show the math):
+  - prior (float, default 0.05): base rate of candidate flags being real.
+  - posterior (float, default 0.05): Bayesian belief after evidence; P(real | evidence).
+  - evidence (json): list of {desc, l_real, l_fake, llr} from prove/verify checks.
+  - sprt_alpha (float, default 0.05): Type I (false-positive) budget.
+  - sprt_beta (float, default 0.10): Type II (missed) budget.
+  - sprt_decision (none|real|false|inconclusive): SPRT verdict from accumulated log-LR.
+  - stage (find|prove|fix|verify|done): pipeline graph position (docs/math.md Primitive 3).
+  - loop_variant (json): the V(s) trace for this finding's lifecycle (decreasing to 0).
 - Scan: id, target, target_type(local|git), commit, provider, model, profile, status,
   started_at, finished_at, finding_count.
+  MATH FIELDS:
+  - precision (float|null): TP/(TP+FP) for this scan (docs/math.md ranking framing).
+  - recall (float|null): TP/(TP+FN) for this scan.
 - StepResult: id, scan_id, step_index, name, raw_output, tool_calls(json), findings(json), duration_ms.
 
 ## L8. Storage = SQLite, one file, zero-config

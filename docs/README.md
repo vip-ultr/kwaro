@@ -21,6 +21,7 @@ as it grows.
 - `agents.md` — why agents are anonymous steps, not named personas (option A).
 - `providers.md` — model provider strategy (free-first, bring-your-own-key).
 - `ui.md` — terminal + browser UI direction.
+- `math.md` — the locked math primitives (Bayesian confidence, loop variant, pipeline graph) with verified examples.
 - `profiles.md` — domain profile format + discovery (the community growth loop).
 - `fail-states.md` — first-run flow + every failure state, stated honestly.
 - `release.md` — versioning, changelog, PyPI, cross-OS CI.
