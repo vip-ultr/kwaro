@@ -30,7 +30,7 @@ class Storage:
                 id TEXT PRIMARY KEY, target TEXT, target_type TEXT,
                 "commit" TEXT, provider TEXT, model TEXT, profile TEXT,
                 status TEXT, started_at REAL, finished_at REAL,
-                finding_count INTEGER, precision REAL, recall REAL
+                finding_count INTEGER, kept_count INTEGER, precision REAL, recall REAL
             )"""
         )
         self.conn.execute(
@@ -50,11 +50,11 @@ class Storage:
         self.conn.execute(
             """INSERT OR REPLACE INTO scans
                (id, target, target_type, "commit", provider, model, profile,
-                status, started_at, finished_at, finding_count, precision, recall)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                status, started_at, finished_at, finding_count, kept_count, precision, recall)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (scan.id, scan.target, scan.target_type, scan.commit, scan.provider,
              scan.model, scan.profile, scan.status, scan.started_at,
-             scan.finished_at, scan.finding_count, scan.precision, scan.recall),
+             scan.finished_at, scan.finding_count, scan.kept_count, scan.precision, scan.recall),
         )
         self.conn.commit()
 

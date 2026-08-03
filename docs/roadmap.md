@@ -48,10 +48,18 @@ Phased build. Each phase ends in something runnable and verified.
 - Verify: pytest 16/16 (5 analyzers + profile filtering) on a multi-lang fixture.
   Generic scan finds 5 candidates; fintech profile runs 4 (xss off) and finds 4.
 
-## Phase 4 - Pipeline + proof
-- Step runner, job execution, aggregation, de-dupe (L4), severity rankers (L3).
-- "prover" step: generate test/PoC for candidates (v1: generate-only, sandbox off).
-- Verify: end-to-end scan of fixture produces ranked, de-duped findings + PoCs.
+## Phase 4 - Pipeline + proof (DONE, 2026-08-03)
+- `kwaro/core/rank.py`: L3 severity bands (CVSS-style) + composite confidence
+  (static>model, PoC VERIFIED>UNVERIFIED) + L4 root-cause fingerprint + de-dupe.
+- `kwaro/core/pipeline.py`: explicit FIND/PROVE/FIX/VERIFY stages orchestrating the
+  Phase 1 math spine, then aggregate -> de-dupe (L4) -> rank (L3). Keep math intact.
+- `kwaro/analyzers/prover.py`: PoC generation, generate-only (L6: never executes
+  offline). Model-driven branch is opt-in BYOK.
+- `kwaro scan --pocs` generates per-finding PoC placeholders; `--profile` selects analyzers.
+- `Scan.kept_count` added; persisted in SQLite (L8). `cmd_scan` routes through pipeline.
+- Verify: pytest 23/23 (rank bands, composite confidence, L4 dedup, prover offline,
+  pipeline end-to-end with de-dupe + ranking). Full scan finds 5, de-dupes, ranks,
+  generates 5 PoC placeholders. Zero new runtime deps.
 
 ## Phase 5 - CLI polish
 - `kwaro scan`, SARIF/JSON export, diff-aware rescan.

@@ -24,6 +24,16 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Specs: domain profiles (profiles.md), fail states (fail-states.md),
   release process (release.md).
 
+## [0.4.0] - 2026-08-03
+- Phase 4 pipeline + proof: `core/rank.py` (L3 severity bands + composite confidence,
+  L4 root-cause fingerprint + de-dupe), `core/pipeline.py` (FIND/PROVE/FIX/VERIFY
+  stages orchestrating the math spine, then aggregate -> de-dupe -> rank),
+  `analyzers/prover.py` (PoC generate-only, L6: never executes offline).
+- `kwaro scan --pocs` generates per-finding PoC placeholders; `--profile` selects
+  analyzers. `Scan.kept_count` added and persisted (L8).
+- Tests: Phase 4 suite (rank bands, composite confidence, L4 dedup, prover offline,
+  pipeline end-to-end). Full suite 23/23 pass. Zero new runtime deps.
+
 ## [0.3.0] - 2026-08-03
 - Phase 3 static analyzers: `kwaro/analyzers/base.py` (Analyzer/Rule/REGISTRY),
   `secrets.py`, `injection.py`, `xss.py`, `traversal.py`, `auth.py` (pure-Python,

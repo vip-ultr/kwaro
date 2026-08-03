@@ -175,6 +175,7 @@ class Scan:
     started_at: float = field(default_factory=time.time)
     finished_at: float = 0.0
     finding_count: int = 0
+    kept_count: int = 0
     precision: Optional[float] = None
     recall: Optional[float] = None
 
@@ -184,6 +185,7 @@ class Scan:
             "commit": self.commit, "provider": self.provider, "model": self.model,
             "profile": self.profile, "status": self.status,
             "started_at": self.started_at, "finished_at": self.finished_at,
-            "finding_count": self.finding_count, "precision": self.precision,
+            "finding_count": self.finding_count, "kept_count": self.kept_count,
+            "precision": self.precision,
             "recall": self.recall,
         }

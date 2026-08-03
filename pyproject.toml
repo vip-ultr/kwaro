@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kwaro"
-version = "0.3.0"
+version = "0.4.0"
 description = "kwaro - a free, open-source security scanner for every developer, on every OS. Chat with it in your terminal or browser; runs local models with zero cost."
 readme = "README.md"
 requires-python = ">=3.10"

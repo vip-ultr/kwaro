@@ -67,9 +67,11 @@ def verify_finding(f: Finding) -> None:
         f.stage = Stage.VERIFY
 
 
-def cmd_scan(target: str, profile: str = "generic") -> int:
+def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
+             provider_for_poc=None) -> int:
     from .analyzers import enabled_names
     from .core.profiles import Profile
+    from .core.rank import composite_confidence
 
     prof = Profile.load(profile)
     only = enabled_names(prof.enable) if prof.enable else None
@@ -85,29 +87,33 @@ def cmd_scan(target: str, profile: str = "generic") -> int:
     store = Storage()
     store.save_scan(scan)
 
-    # run the bounded find, prove, fix, verify loop (Primitive 2)
-    trace = loop.run(findings, prove, fix, verify_finding, cap=12)
-    for f in findings:
+    # Pipeline: PROVE/FIX/VERIFY (math spine) -> aggregate -> de-dupe (L4) -> rank (L3)
+    from .core.pipeline import run_pipeline, attach_scan_math
+    result = run_pipeline(
+        findings, prove, fix, verify_finding, cap=12,
+        generate_pocs=generate_pocs, provider=provider_for_poc,
+    )
+    for f in result["ranked"]:
         f.scan_id = scan.id
         store.save_finding(f)
 
-    scan.finding_count = len(findings)
+    attach_scan_math(scan, result)
     scan.status = "done"
+    store.save_scan(scan)
     store.close()
 
     # --- math-aware report ---
-    kept = [f for f in findings if f.sprt_decision == SprtDecision.REAL
-            or f.posterior >= 0.5]
-    print(f"\n{len(findings)} candidate findings, {len(kept)} kept after prove/verify\n")
+    kept = result["kept"]
+    print(f"\n{len(result['unique'])} unique findings (from {len(findings)} raw), "
+          f"{len(kept)} kept after prove/verify\n")
     for f in kept:
+        conf = composite_confidence(f)
         print(f"  {f.severity.value.upper():8} {f.file}:{f.line_start:<4} {f.title}")
-        print(f"           prior={f.prior:.3f} posterior={f.posterior:.3f} "
-              f"sprt={f.sprt_decision.value} evidence={len(f.evidence)}")
-    print(f"\nloop variant trace: {' -> '.join(str(x) for x in trace)}")
-    valid, why = graph.is_valid_trace(
-        [Stage.FIND, Stage.PROVE, Stage.FIX, Stage.VERIFY,
-         Stage.FIND if findings else Stage.DONE])
-    print(f"pipeline graph valid: {valid} ({why})")
+        print(f"           conf={conf:.3f} prior={f.prior:.3f} posterior={f.posterior:.3f} "
+              f"sprt={f.sprt_decision.value} poc={f.poc_state.value}")
+    print(f"\nloop variant trace: {' -> '.join(str(x) for x in result['trace'])}")
+    print(f"pipeline graph valid: {result['graph_valid']} ({result['graph_why']})")
+    print(f"de-duplicated: {len(findings)} raw -> {len(result['unique'])} unique")
     print("kwaro: scan complete (findings persisted to ~/.kwaro/kwaro.db)")
     return 0
 
@@ -217,13 +223,17 @@ def main() -> int:
             print("kwaro scan: missing <path|url>")
             return 2
         profile = "generic"
+        generate_pocs = False
         rest = args[1:]
         if "--profile" in rest:
             idx = rest.index("--profile")
             if idx + 1 < len(rest):
                 profile = rest[idx + 1]
                 rest = rest[:idx] + rest[idx + 2:]
-        return cmd_scan(rest[0], profile)
+        if "--pocs" in rest:
+            generate_pocs = True
+            rest = [a for a in rest if a != "--pocs"]
+        return cmd_scan(rest[0], profile, generate_pocs)
     if cmd == "chat":
         if len(args) < 2:
             print("kwaro chat: missing <path|url>")

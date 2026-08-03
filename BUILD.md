@@ -33,26 +33,24 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 4 (Phases 0-3 shipped)
+## Where to start: Phase 5 (Phases 0-4 shipped)
 
-Phases 0, 1, 2, and 3 are DONE and verified (commits in git history). Do NOT
-rebuild core/ (models, storage, workspace, verify, graph, loop, config, profiles),
-the providers stack, kwaro/chat/agent.py, or kwaro/analyzers/. Start here:
+Phases 0-4 are DONE and verified (commits in git history). Do NOT rebuild core/
+(models, storage, workspace, verify, graph, loop, config, profiles, rank, pipeline),
+the providers stack, kwaro/chat/agent.py, kwaro/analyzers/ (base, secrets, injection,
+xss, traversal, auth, prover), or the math spine. Start here:
 
-Goal (Phase 4): the step runner + pipeline that aggregates findings, de-dupes by
-root cause (L4), assigns severity (L3), and generates a PoC for candidates
-(v1: generate-only, sandbox off by default, L6). Zero new runtime deps.
+Goal (Phase 5): CLI polish + exports. SARIF/JSON export of findings (L7 fields +
+math), diff-aware rescan (L9), and a real `--profile` surface in help. Zero new
+runtime deps (SARIF/JSON are pure stdlib to emit).
 
 Concrete tasks (in `kwaro/`):
-1. `core/pipeline.py` - run the FIND/PROVE/FIX/VERIFY stages as explicit steps,
-   aggregate Finding objects, de-dupe by fingerprint (L4).
-2. `core/rank.py` - composite confidence + severity bands (L3), mark false positives.
-3. `analyzers/prover.py` - generate a minimal failing test/PoC file for a candidate
-   (model-driven when a provider is configured; offline placeholder otherwise).
-4. `core/__main__.py` scan path - call the pipeline instead of the inline loop.run,
-   keep the math spine (verify/bayes/sprt/graph) intact.
-6. `cli.py` / `__main__.py` - `kwaro init`, `kwaro scan <path|url>` (static-only for
-   now), `kwaro chat` (stub that explains static-only until Phase 2).
+1. `core/export.py` - emit SARIF + JSON from a Scan + its ranked findings (incl.
+   fingerprint, posterior, sprt_decision, severity band). No external libs.
+2. `core/workspace.py` - diff-aware rescan (L9): store last commit per (target,
+   profile); rescan `git diff --name-only`. For local paths, store file hashes.
+3. `cli.py` / `__main__.py` - wire `kwaro scan --format sarif|json`, show profile list.
+4. Eval (L13): assert recall on tests/fixtures/vuln-repo, report FP count in README.
 
 Definition of done for Phase 1 (SHIPPED 2026-08-03):
 - `kwaro init` works and writes config.
