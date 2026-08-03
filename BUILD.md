@@ -33,37 +33,37 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 7 (Phases 0-6 shipped)
+## Where to start: Phase 8 - real multi-language depth (Phases 0-7 shipped)
 
-Phases 0-6 are DONE and verified (commits in git history). Do NOT rebuild core/
-(models, storage, workspace, verify, graph, loop, config, profiles, rank, pipeline,
-export), the providers stack, kwaro/chat/agent.py, kwaro/analyzers/ (base, secrets,
-injection, xss, traversal, auth, prover), kwaro/web/ (static bundle), or kwaro/serve.py.
+Phases 0-7 are DONE and verified (commits in git history) and kwaro is published to
+PyPI/Homebrew/Scoop. Do NOT rebuild the existing engine (core/, providers, analyzers/
+regex layer, chat, web, serve, packaging). The gap is ANALYSIS DEPTH: today's 5 regex
+rules return 0 on a Rust/Solana repo because they don't cover those vuln classes.
 Start here:
 
-Goal (Phase 7): docs, tests, packaging, release. README with real numbers from the
-eval fixture (L13), CONTRIBUTING + community docs, a full green CI pytest run, and
-publish to PyPI as `kwaro` (AGPL-3.0). Keep zero CLI runtime deps; `serve` stays
-an optional extra.
+Goal (Phase 8): make kwaro credible on "any codebase" via tree-sitter AST + intra
+procedural taint (the `kwaro[ast]` extra), honest about the Semgrep-CE-class target.
+Full plan and architecture: `docs/plan-phase8.md`. Resume from there.
 
-Concrete tasks:
-1. README: add a "How it works / the math" section linking docs/math.md, and a
-   results table from tests/test_eval.py (recall per rule on the seeded fixture).
-2. Add CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md (skeletons exist in docs/).
-3. CI: a workflow running `pytest` on Linux/macOS/Windows (Python 3.10-3.12).
-4. Package: `uv build` / `python -m build`; `uv pip install -e ".[serve]"` for UI dev.
-5. Release process per docs/release.md; tag v0.6.0.
-- `kwaro scan ./some-repo` clones/copies, records a Scan row, runs the math spine
-  end to end. A minimal static analyzer (secret + SQLi regex) is in place so the
-  loop has real findings to prove/verify; full per-language analyzers are Phase 3.
-- `kwaro scan <git-url>` clones and scans.
-- SQLite has the scan + findings, including the math fields (prior, posterior,
-  evidence, sprt_decision, stage, loop_variant).
-- `python -m kwaro` and `kwaro` (after install) both run. Zero new runtime deps.
-- A pytest smoke test confirms the above on a tiny fixture (tests/fixtures/).
+Concrete tasks (in order; each ends runnable + verified on a seeded fixture):
+1. `kwaro/ast/parser.py` - lazy tree-sitter Parser cache per extension; falls back to
+   regex when the extra is absent. Add `ast` extra to pyproject (tree-sitter + grammars).
+2. `kwaro/ast/queries/` - Rust `.scm` queries for: missing signer check, missing ownership
+   check, unchecked arithmetic (overflow), account confusion.
+3. `kwaro/ast/rules/` - Rust/Solana rule defs consuming those queries; integrate into the
+   analyzer registry (regex mode OR ast mode, chosen at runtime).
+4. `tests/fixtures/rust-solana/` - seeded Solana program with one instance of each rule.
+   `tests/test_eval.py` asserts 100% recall on it (L13). This is the bar Rust is "done".
+5. Then Phase B (taint.py), Phase C (real PoC per L6), Phase D (docs/coverage.md matrix).
 
-NOTE FOR A FRESH SESSION: Phase 1 is complete. Do NOT rebuild models/storage/
-workspace/verify/graph/loop. Start at Phase 2 (providers + `kwaro chat` loop).
+Honesty rules carried from the plan: no language claimed until its eval passes; we do not
+claim to beat CodeQL; regex stays the zero-dep default; `ast` is opt-in depth only.
+
+Existing verified behavior to preserve (do not regress):
+- `kwaro scan <git-url|path>` clones/copies, records a Scan row, runs the math spine end
+  to end; SQLite stores findings + math fields (prior, posterior, evidence, sprt_decision,
+  stage, loop_variant). `pytest` is green (35/35) and CI runs the matrix. Keep it green.
+- CLI stays zero-dependency; `serve` and now `ast` are optional extras.
 
 ## Reading order for a new session
 

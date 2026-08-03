@@ -8,11 +8,20 @@ docs/decisions-unlocked.md. Build against these. Anything not here is still open
 - Runtime has ZERO third-party deps for the CLI. `serve` extra adds fastapi/uvicorn/websockets only.
 - Single language: Python 3.10+. Pure stdlib (pathlib, subprocess list-args). Cross-OS.
 
-## L2. Static analysis = hybrid, regex is the always-available layer
-- v1: regex/line-heuristic analyzers, zero extra deps, cover secrets, SQLi, XSS,
-  path traversal, auth gaps, across Python/JS/TS/Go/Java/PHP/Solidity/Rust where patterns apply.
-- Tree-sitter is an OPTIONAL per-language upgrade (off by default, install on demand) for
-  AST/multi-line data-flow detection. Regex is the fallback layer, not the whole story.
+## L2. Static analysis = hybrid: regex is the zero-dep default, tree-sitter is the `ast` extra
+- Regex/line-heuristic analyzers are ALWAYS available, zero extra deps, covering secrets,
+  SQLi, XSS, path traversal, auth gaps, across Python/JS/TS/Go/Java/PHP/Solidity/Rust
+  where patterns apply. This is the `pipx install kwaro` experience.
+- Tree-sitter is an OPTIONAL extra `kwaro[ast]` (native build: C compiler + grammar libs).
+  When installed, analyzers switch to AST mode (parse + per-language queries + intra
+  procedural taint) for the languages that have a grammar. Regex remains the fallback for
+  languages/installs without the extra. The CLI core stays zero-dependency (L1); `ast` is
+  an opt-in depth upgrade only.
+- Grammar availability drives language depth: Rust/Python/JS/TS/Go/Java/C/C#/Ruby/Scala
+  have official grammars; Solidity/PHP are community. A language is "AST-covered" only when
+  its seeded fixture passes eval (L13), never claimed before.
+- Analysis depth target (see docs/plan-phase8.md): Semgrep-CE-class (tree-sitter AST +
+  intraprocedural taint), not whole-program CodeQL depth, in v1. Honest about limits.
 
 ## L3. Severity = CVSS-style bands + composite confidence
 - Bands: Critical 9.0-10, High 7.0-8.9, Medium 4.0-6.9, Low 0.1-3.9, Info <0.1.

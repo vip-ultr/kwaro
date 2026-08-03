@@ -100,8 +100,20 @@ not the model.
 | Diff-aware rescan (L9) | shipped | analyze changed files only |
 | Browser UI via `serve` extra | shipped | hand-written bundle, no React build |
 | CI/CD guard (`--diff` + SARIF) | planned | GitHub code scanning output |
-| Tree-sitter AST detection | optional | per-language upgrade, off by default |
+| Tree-sitter AST + intraprocedural taint | planned (`kwaro[ast]` extra) | Rust/Python/JS first; see docs/plan-phase8.md |
 
+### Coverage and honesty
+
+kwaro's current analyzers are pure-Python regex over 8 extensions (secrets, SQLi, XSS,
+path traversal, weak crypto). That layer is fast and zero-dependency, but shallow: it
+returns 0 findings on a Rust/Solana repo because those vuln classes aren't in the 5 rules.
+The `kwaro[ast]` extra (tree-sitter AST + taint, planned) closes that gap, language by
+language, starting with Rust (blockchain/Solana) then Python/JS. A language is only
+claimed "covered" once its seeded fixture passes the eval (100% recall). Full plan and
+the per-language coverage matrix live in [`docs/plan-phase8.md`](docs/plan-phase8.md) and
+the upcoming [`docs/coverage.md`](docs/coverage.md). We target free, local,
+Semgrep-Community-Edition-class breadth plus the find/prove/fix/verify loop, not "beat
+CodeQL" on deep multi-step taint in v1.
 ## Install
 
 The CLI has **zero third-party dependencies** and one pure-Python wheel covers

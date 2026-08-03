@@ -25,6 +25,7 @@ dependencies = []
 
 [project.optional-dependencies]
 serve = ["fastapi", "uvicorn", "websockets"]
+ast = ["tree-sitter", "tree-sitter-python", "tree-sitter-rust", "tree-sitter-go", "tree-sitter-javascript", "tree-sitter-typescript", "tree-sitter-java", "tree-sitter-solidity"]
 dev = ["pytest"]
 
 [project.scripts]

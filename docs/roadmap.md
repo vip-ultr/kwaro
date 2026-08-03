@@ -87,9 +87,28 @@ Phased build. Each phase ends in something runnable and verified.
   runs pipeline + returns math, SARIF export, chat reply). CLI still runs with the
   extra absent (prints install hint). Zero CLI runtime deps.
 
-## Phase 7 - Docs, tests, release
-- README with screenshots, CONTRIBUTING, full pytest suite, package on PyPI.
-- Verify: `pip install kwaro` works on a clean machine (Linux/macOS/Windows).
+## Phase 7 - Docs, tests, release (DONE, 2026-08-03)
+- README professional rewrite, CONTRIBUTING/SECURITY/CODE_OF_CONDUCT complete.
+- CI workflow (pytest matrix ubuntu/macos/windows x py3.10-3.12), packaging verified
+  (`uv build` pure-Python wheel, zero runtime deps).
+- Published: PyPI (`pipx install kwaro`), GitHub Releases v0.6.0 (wheel + sdist),
+  Homebrew tap `vip-ultr/homebrew-kwaro`, Scoop bucket `vip-ultr/scoop-kwaro`.
+  `packaging.yml` auto-publishes to PyPI on tag.
+- Verify: `pipx install kwaro` works on Debian/Ubuntu (WSL); `kwaro` on PATH, real scan
+  runs. All four channels live.
+
+## Phase 8 - Real multi-language depth (RESEARCHED, 2026-08-03; not yet built)
+- Full plan: `docs/plan-phase8.md`. Honest target: free, local, Semgrep-CE-class breadth
+  (tree-sitter AST + intraprocedural taint) PLUS the prove/fix/verify loop. Not "beat CodeQL."
+- `kwaro/ast/` (new, `kwaro[ast]` extra): tree-sitter parser cache, per-language queries,
+  intraprocedural taint tracker. Analyzers run regex (zero-dep default) or ast (extra) mode.
+- Language order: Rust -> Python/JS -> Go -> Java -> Solidity -> C/C++/PHP. Each "done" only
+  when its seeded fixture hits 100% recall in tests/test_eval.py (L13).
+- Phase A: Rust + blockchain/Solana rules (missing signer/ownership check, unchecked
+  arithmetic, account confusion) + tree-sitter wiring. Seeds tests/fixtures/rust-solana/.
+- Phase B: intraprocedural taint (source->sink, sanitizers). Phase C: real PoC execution
+  (sandbox per L6). Phase D: docs/coverage.md matrix + per-language eval fixtures.
+- `docs/coverage.md`: language x mode x rule-family matrix, generated from eval, not asserted.
 
 ## Principles throughout
 - Free-first, local-first, cross-OS, zero runtime deps.
