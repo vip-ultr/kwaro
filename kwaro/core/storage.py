@@ -83,3 +83,33 @@ class Storage:
 
     def close(self) -> None:
         self.conn.close()
+
+    # --- L9 diff-aware rescan baseline ---
+    def ensure_baseline_table(self) -> None:
+        self.conn.execute(
+            """CREATE TABLE IF NOT EXISTS baselines (
+                target TEXT, profile TEXT, "commit" TEXT,
+                hashes TEXT, scanned_at REAL,
+                PRIMARY KEY (target, profile)
+            )"""
+        )
+        self.conn.commit()
+
+    def save_baseline(self, target: str, profile: str, commit: str,
+                      hashes: dict, scanned_at: float) -> None:
+        self.ensure_baseline_table()
+        self.conn.execute(
+            """INSERT OR REPLACE INTO baselines (target, profile, "commit", hashes, scanned_at)
+               VALUES (?,?,?,?,?)""",
+            (target, profile, commit, json.dumps(hashes), scanned_at),
+        )
+        self.conn.commit()
+
+    def load_baseline(self, target: str, profile: str):
+        self.ensure_baseline_table()
+        row = self.conn.execute(
+            'SELECT "commit", hashes FROM baselines WHERE target=? AND profile=?',
+            (target, profile)).fetchone()
+        if not row:
+            return None
+        return {"commit": row[0], "hashes": json.loads(row[1])}

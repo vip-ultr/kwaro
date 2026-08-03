@@ -68,23 +68,40 @@ def verify_finding(f: Finding) -> None:
 
 
 def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
-             provider_for_poc=None) -> int:
+             provider_for_poc=None, rescan: bool = False, fmt: Optional[str] = None) -> int:
     from .analyzers import enabled_names
     from .core.profiles import Profile
     from .core.rank import composite_confidence
+    from .core import export as export_mod
 
     prof = Profile.load(profile)
     only = enabled_names(prof.enable) if prof.enable else None
-    print(f"kwaro: scanning {target} (profile: {profile}, {len(only) if only else 'all'} analyzers, math spine on)")
     ws = Workspace.from_target(target)
+
+    # L9: diff-aware rescan. Load baseline; only scan changed files unless full scan.
+    store = Storage()
+    baseline = store.load_baseline(target, profile) if rescan else None
+    if rescan and baseline:
+        targets = ws.diff_targets(baseline["hashes"])
+        print(f"kwaro: rescan {target} (profile: {profile}) - {len(targets)} changed file(s)")
+    else:
+        targets = list(ws.file_hashes.keys())
+        if rescan:
+            print(f"kwaro: no baseline for {target}/{profile}; full scan")
+        else:
+            print(f"kwaro: scanning {target} (profile: {profile}, "
+                  f"{len(only) if only else 'all'} analyzers, math spine on)")
+
     findings: list[Finding] = []
-    for p in ws.file_hashes:
-        if p.endswith((".py", ".js", ".ts", ".go", ".java", ".php", ".sol", ".rs", ".html", ".jsx", ".vue", ".hbs", ".ejs")):
+    EXT = (".py", ".js", ".ts", ".go", ".java", ".php", ".sol", ".rs",
+           ".html", ".jsx", ".vue", ".hbs", ".ejs")
+    for rel in targets:
+        p = os.path.join(ws.root, rel)
+        if p.endswith(EXT):
             findings.extend(analyze_file(p, only))
 
     scan = Scan(target=target, target_type=ws.target_type, commit=ws.commit,
                 provider="static", model="none", profile=profile)
-    store = Storage()
     store.save_scan(scan)
 
     # Pipeline: PROVE/FIX/VERIFY (math spine) -> aggregate -> de-dupe (L4) -> rank (L3)
@@ -99,11 +116,19 @@ def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
 
     attach_scan_math(scan, result)
     scan.status = "done"
+    # L9: persist baseline for next rescan
+    store.save_baseline(target, profile, ws.commit, ws.file_hashes, scan.finished_at or 0.0)
     store.save_scan(scan)
     store.close()
 
     # --- math-aware report ---
     kept = result["kept"]
+    if fmt:
+        out_path = f"kwaro-report.{ 'sarif' if fmt == 'sarif' else 'json' }"
+        export_mod.write_report(scan, result["ranked"], fmt, out_path)
+        print(f"kwaro: wrote {fmt.upper()} report to {out_path}")
+        return 0
+
     print(f"\n{len(result['unique'])} unique findings (from {len(findings)} raw), "
           f"{len(kept)} kept after prove/verify\n")
     for f in kept:
@@ -213,7 +238,10 @@ def main() -> int:
     args = sys.argv[1:]
     if not args or args[0] in ("-h", "--help"):
         print("kwaro - free, local security scanner")
-        print("usage: kwaro init | kwaro scan <path|url> | kwaro chat <path|url>")
+        print("usage:")
+        print("  kwaro init")
+        print("  kwaro scan <path|url> [--profile fintech|blockchain|ai_app|generic] [--pocs] [--rescan] [--format sarif|json]")
+        print("  kwaro chat <path|url>")
         return 0
     cmd = args[0]
     if cmd == "init":
@@ -224,6 +252,8 @@ def main() -> int:
             return 2
         profile = "generic"
         generate_pocs = False
+        rescan = False
+        fmt = None
         rest = args[1:]
         if "--profile" in rest:
             idx = rest.index("--profile")
@@ -233,7 +263,15 @@ def main() -> int:
         if "--pocs" in rest:
             generate_pocs = True
             rest = [a for a in rest if a != "--pocs"]
-        return cmd_scan(rest[0], profile, generate_pocs)
+        if "--rescan" in rest:
+            rescan = True
+            rest = [a for a in rest if a != "--rescan"]
+        if "--format" in rest:
+            idx = rest.index("--format")
+            if idx + 1 < len(rest):
+                fmt = rest[idx + 1]
+                rest = rest[:idx] + rest[idx + 2:]
+        return cmd_scan(rest[0], profile, generate_pocs, None, rescan, fmt)
     if cmd == "chat":
         if len(args) < 2:
             print("kwaro chat: missing <path|url>")

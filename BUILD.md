@@ -33,26 +33,27 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 5 (Phases 0-4 shipped)
+## Where to start: Phase 6 (Phases 0-5 shipped)
 
-Phases 0-4 are DONE and verified (commits in git history). Do NOT rebuild core/
-(models, storage, workspace, verify, graph, loop, config, profiles, rank, pipeline),
-the providers stack, kwaro/chat/agent.py, kwaro/analyzers/ (base, secrets, injection,
-xss, traversal, auth, prover), or the math spine. Start here:
+Phases 0-5 are DONE and verified (commits in git history). Do NOT rebuild core/
+(models, storage, workspace, verify, graph, loop, config, profiles, rank, pipeline,
+export), the providers stack, kwaro/chat/agent.py, kwaro/analyzers/ (base, secrets,
+injection, xss, traversal, auth, prover), or the math spine. Start here:
 
-Goal (Phase 5): CLI polish + exports. SARIF/JSON export of findings (L7 fields +
-math), diff-aware rescan (L9), and a real `--profile` surface in help. Zero new
-runtime deps (SARIF/JSON are pure stdlib to emit).
+Goal (Phase 6): the browser UI via the `serve` extra (FastAPI + hand-written static
+bundle, L11). A single page that shows findings as cards with the math exposed
+(posterior, SPRT verdict, graph trace), a live-activity feed, and a chat panel that
+drives `kwaro chat` over WebSocket. No React build in v1 (L11: vanilla JS + tiny helper).
 
 Concrete tasks (in `kwaro/`):
-1. `core/export.py` - emit SARIF + JSON from a Scan + its ranked findings (incl.
-   fingerprint, posterior, sprt_decision, severity band). No external libs.
-2. `core/workspace.py` - diff-aware rescan (L9): store last commit per (target,
-   profile); rescan `git diff --name-only`. For local paths, store file hashes.
-3. `cli.py` / `__main__.py` - wire `kwaro scan --format sarif|json`, show profile list.
-4. Eval (L13): assert recall on tests/fixtures/vuln-repo, report FP count in README.
+1. `serve.py` (or `web/`) - FastAPI app: serves the static bundle + a `/ws` endpoint
+   that streams scan activity and proxies chat. Uses only the `serve` extra deps.
+2. `web/static/index.html` + `web/static/app.js` + `web/static/style.css` - finding
+   cards (severity band color, confidence, posterior, SPRT), activity log, chat box.
+3. Wire `kwaro serve [--port 8080]` in `__main__.py`; it imports FastAPI lazily so the
+   CLI still has zero runtime deps without the extra installed.
+4. Eval (L13) numbers already asserted in tests/test_eval.py; surface them in README.
 
-Definition of done for Phase 1 (SHIPPED 2026-08-03):
 - `kwaro init` works and writes config.
 - `kwaro scan ./some-repo` clones/copies, records a Scan row, runs the math spine
   end to end. A minimal static analyzer (secret + SQLi regex) is in place so the

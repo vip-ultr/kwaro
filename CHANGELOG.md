@@ -24,6 +24,15 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Specs: domain profiles (profiles.md), fail states (fail-states.md),
   release process (release.md).
 
+## [0.5.0] - 2026-08-03
+- Phase 5 CLI polish: `core/export.py` (SARIF 2.1.0 + JSON carrying L7 fields + math
+  under properties/summary); `kwaro scan --format sarif|json`.
+- L9 diff-aware rescan: `core/storage.py` baseline table (target+profile -> commit +
+  file hashes); `core/workspace.py` relative-path indexing + `diff_targets()` (git
+  commit diff or local hash diff). `kwaro scan --rescan` scans only changed files.
+- Eval (L13): `tests/test_eval.py` asserts recall on the seeded fixture and flags
+  unexpected rule ids as possible FPs. Full suite 30/30 pass. Zero new runtime deps.
+
 ## [0.4.0] - 2026-08-03
 - Phase 4 pipeline + proof: `core/rank.py` (L3 severity bands + composite confidence,
   L4 root-cause fingerprint + de-dupe), `core/pipeline.py` (FIND/PROVE/FIX/VERIFY

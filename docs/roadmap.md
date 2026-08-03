@@ -61,11 +61,21 @@ Phased build. Each phase ends in something runnable and verified.
   pipeline end-to-end with de-dupe + ranking). Full scan finds 5, de-dupes, ranks,
   generates 5 PoC placeholders. Zero new runtime deps.
 
-## Phase 5 - CLI polish
-- `kwaro scan`, SARIF/JSON export, diff-aware rescan.
-- Verify: export valid SARIF; rescan only changed files.
+## Phase 5 - CLI polish (DONE, 2026-08-03)
+- `kwaro/core/export.py`: SARIF 2.1.0 + JSON exporters carrying L7 fields AND the
+  math (posterior, sprt_decision, fingerprint, composite confidence) under
+  `properties`/`summary`. Zero-dep. `kwaro scan --format sarif|json`.
+- `kwaro/core/storage.py`: L9 baseline table (target+profile -> commit + file hashes).
+- `kwaro/core/workspace.py`: relative-path indexing + `diff_targets()` (git commit
+  diff or local hash diff) so rescan is diff-aware across temp workspaces.
+- `kwaro scan --rescan` analyzes only changed files; `--profile`/`--pocs`/`--format`
+  all wired. Help lists profiles and flags.
+- `tests/test_eval.py` (L13): asserts recall on the seeded fixture (every detector
+  fires) and flags unexpected rule ids as possible FPs. Full suite 30/30.
+- Verify: SARIF/JSON written and parse; rescan reports 0 changed when baseline
+  matches; eval asserts all seeded rules detected. Zero new runtime deps.
 
-## Phase 6 - Browser UI
+## Phase 6 - Browser UI (serve)
 - `kwaro serve`: FastAPI + static bundle, finding cards, live activity, chat panel.
 - Verify: UI shows a scan; chat drives a scan.
 

@@ -54,13 +54,17 @@ What works today:
 python3 -m kwaro init                              # detect Ollama, write config (free/offline default)
 python3 -m kwaro scan ./my-repo                    # static scan + math spine, math-aware report
 python3 -m kwaro scan ./my-repo --profile fintech  # domain-tuned analyzers
+python3 -m kwaro scan ./my-repo --rescan          # diff-aware: only changed files (L9)
+python3 -m kwaro scan ./my-repo --format sarif    # SARIF 2.1.0 export (math in properties)
+python3 -m kwaro scan ./my-repo --format json      # JSON export (L7 + math fields)
 python3 -m kwaro chat ./my-repo                    # interactive loop: model uses tools, then reports
 ```
 
 The static analyzers (secrets, injection, XSS, traversal, auth) are pure-Python,
 zero-dep, and CWE-mapped. Domain profiles (generic, fintech, blockchain, ai_app)
 select which run. The math spine (docs/math.md) drives confidence, the SPRT stop
-rule, the pipeline graph, and loop termination over every finding.
+rule, the pipeline graph, and loop termination over every finding. Tests assert
+recall on a seeded fixture (L13).
 
 `kwaro chat` needs a model. With no model configured it falls back to the
 static analyzer; point it at local Ollama (no key) or a hosted BYOK provider.

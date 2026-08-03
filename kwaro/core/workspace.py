@@ -58,7 +58,9 @@ class Workspace:
                     continue
                 p = os.path.join(dirpath, fn)
                 try:
-                    self.file_hashes[p] = self._hash_file(p)
+                    # L9: key by RELATIVE path so baselines match across temp workspaces
+                    rel = os.path.relpath(p, self.root)
+                    self.file_hashes[rel] = self._hash_file(p)
                 except OSError:
                     continue
 
@@ -70,13 +72,31 @@ class Workspace:
                 h.update(chunk)
         return h.hexdigest()
 
-    def changed_files(self, baseline: Dict[str, str]) -> List[str]:
-        """Files present now but differing from (or absent in) baseline."""
-        out = []
-        for p, h in self.file_hashes.items():
-            if baseline.get(p) != h:
-                out.append(p)
-        return out
+    def git_diff_files(self, since_commit: str) -> List[str]:
+        """L9: for git targets, return changed files (relative paths) since `since_commit`."""
+        if self.target_type != "git" or not since_commit:
+            return []
+        try:
+            out = subprocess.run(
+                ["git", "-C", self.root, "diff", "--name-only", since_commit, "HEAD"],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip().splitlines()
+            return [p for p in out if p]
+        except Exception:
+            return []
+
+    def diff_targets(self, baseline_hashes: dict) -> List[str]:
+        """L9: relative paths to scan. For git, changed vs baseline commit; for local,
+        files whose hash differs from baseline. Falls back to all when no baseline.
+        Returns RELATIVE paths; callers resolve via os.path.join(root, p)."""
+        if not baseline_hashes:
+            return list(self.file_hashes.keys())
+        if self.target_type == "git":
+            changed = self.git_diff_files(baseline_hashes.get("commit", ""))
+            if changed:
+                return changed
+        # local or git-fallback: hash-based diff
+        return [p for p, h in self.file_hashes.items() if baseline_hashes.get(p) != h]
 
     def cleanup(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
