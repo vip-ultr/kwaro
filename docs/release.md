@@ -36,17 +36,18 @@ git push origin v0.1.0
 - CI matrix: ubuntu-latest, macos-latest, windows-latest, Python 3.10/3.11/3.12.
 - The fixture-repo eval runs on all three OSes every PR.
 
-## First-release checklist (v0.1.0)
+## First-release checklist (v0.6.0)
 
-- [ ] Core engine + config + SQLite (Phase 1)
-- [ ] Providers: Ollama + OpenAI-compat (Phase 2)
-- [ ] Static analyzers + generic profile (Phase 3)
-- [ ] Pipeline + PoC generate-only (Phase 4)
-- [ ] CLI: scan, SARIF/JSON, diff rescan (Phase 5)
+- [x] Core engine + config + SQLite (Phase 1)
+- [x] Providers: Ollama + OpenAI-compat (Phase 2)
+- [x] Static analyzers + generic profile (Phase 3)
+- [x] Pipeline + PoC generate-only (Phase 4)
+- [x] CLI: scan, SARIF/JSON, diff rescan (Phase 5)
+- [x] Browser UI via `serve` extra (Phase 6)
 - [ ] README quickstart + 60-second demo GIF
-- [ ] CHANGELOG, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
-- [ ] Fixture-repo eval green on all OSes
-- [ ] PyPI publish dry-run verified
+- [x] CHANGELOG, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT
+- [x] Fixture-repo eval green on all OSes (CI matrix: ubuntu/macos/windows, py3.10-3.12)
+- [ ] PyPI publish (dry-run verified; actual publish is a maintainer action)
 
 ## Communication
 

@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .kwaro/
 kwaro_pocs/
+dist/
+build/
+*.egg-info/
+kwaro-report.*

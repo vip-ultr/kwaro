@@ -34,6 +34,9 @@ adheres to [Semantic Versioning](https://semver.org/).
 - `pyproject.toml` `serve` extra = fastapi, uvicorn, websockets (optional).
 - Tests: 5 serve tests via FastClient (index, static, scan runs pipeline + returns
   math, SARIF export, chat reply). Full suite 35/35 pass. CLI runs with extra absent.
+- CI: `.github/workflows/ci.yml` runs pytest on ubuntu/macos/windows x Python 3.10-3.12,
+  installing `.[dev,serve]`. Packaging verified: `uv build` produces a pure-Python wheel
+  with zero runtime deps (only `dev`/`serve` extras). First release: v0.6.0.
 
 ## [0.5.0] - 2026-08-03
 - Phase 5 CLI polish: `core/export.py` (SARIF 2.1.0 + JSON carrying L7 fields + math
