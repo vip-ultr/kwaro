@@ -4,8 +4,8 @@
   "homepage": "https://github.com/vip-ultr/kwaro",
   "license": "AGPL-3.0",
   "architecture": {
-    "64bit": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "0ec9396e0bcb353cfa5b31f0412ee729edc8459ac2ec1a8015e4cb71eb18702b" },
-    "arm64": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "0ec9396e0bcb353cfa5b31f0412ee729edc8459ac2ec1a8015e4cb71eb18702b" }
+    "64bit": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "a0a540fc4b1842c94a21e76178e5cf4f689c78fa5a1975cf4ed5b2481220f39d" },
+    "arm64": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "a0a540fc4b1842c94a21e76178e5cf4f689c78fa5a1975cf4ed5b2481220f39d" }
   },
   "depends": ["python"],
   "installer": {
