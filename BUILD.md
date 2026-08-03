@@ -33,17 +33,23 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 1
+## Where to start: Phase 3 (Phases 0-2 shipped)
 
-Goal: a runnable core that can clone/copy a target, store scans, and define the
-data model, with the tool-call validation scaffold, with ZERO new runtime deps.
+Phases 0, 1, and 2 are DONE and verified (commits in git history). Do NOT rebuild
+core/ (models, storage, workspace, verify, graph, loop, config) or the providers
+stack (base, openai_compat, anthropic, factory) or kwaro/chat/agent.py. Start here:
+
+Goal (Phase 3): real per-language static analyzers (secrets, injection, xss,
+traversal, auth) in `kwaro/analyzers/`, plus per-domain profiles, replacing the
+2-rule placeholder in `kwaro/__main__.py`. Zero new runtime deps.
 
 Concrete tasks (in `kwaro/`):
-1. `core/config.py` - load `~/.kwaro/config.toml` + env overrides; `kwaro init`
-   detects Ollama, recommends a 14B model, writes config. See docs/providers.md,
-   docs/fail-states.md (first-run copy), docs/content.md (strings).
-2. `core/models.py` - dataclasses for Finding / Scan / StepResult per L7.
-3. `core/storage.py` - SQLite open/create/migrate; insert scan + findings.
+1. `analyzers/secrets.py`, `injection.py`, `xss.py`, `traversal.py`, `auth.py` -
+   each a pure-Python rule set returning Finding objects (use models.Finding).
+2. `analyzers/base.py` - Analyzer interface + a registry the scanner calls.
+3. `core/__main__.py` scan path - call the analyzer registry instead of the inline
+   SECRET_RE/SQLI_RE placeholders. Keep the math spine (prove/fix/verify) intact.
+4. `profiles/` - fintech, blockchain/Solidity, ai_app rule+prompt files (GC5).
 4. `core/workspace.py` - clone git URL OR copy local path into a temp workspace;
    compute file hashes for diff-aware rescan (L9).
 5. `core/providers/tools.py` - tool schema definitions + a validator that checks

@@ -53,9 +53,11 @@ What works today:
 ```bash
 python3 -m kwaro init                      # detect Ollama, write config (free/offline default)
 python3 -m kwaro scan ./my-repo            # static scan + math spine, math-aware report
+python3 -m kwaro chat ./my-repo            # interactive loop: model uses tools, then reports
 ```
 
-`kwaro chat` and `kwaro serve` arrive in later phases. See [`docs/roadmap.md`](docs/roadmap.md).
+`kwaro chat` needs a model. With no model configured it falls back to the
+static analyzer; point it at local Ollama (no key) or a hosted BYOK provider.
 
 ## Quickstart (once released)
 

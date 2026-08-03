@@ -19,10 +19,21 @@ Phased build. Each phase ends in something runnable and verified.
 - Note: `core/config.py` was folded into `kwaro init` + providers (Phase 2); the
   schema lives in L7, not a separate module yet.
 
-## Phase 2 - Providers
-- `openai_compat.py` (Ollama/Groq/OpenAI/...), `anthropic.py`.
-- `kwaro chat` loop with tool dispatch.
-- Verify: chat works against local Ollama; falls back to rule-based without a model.
+## Phase 2 - Providers + chat loop (DONE, 2026-08-03)
+- `core/config.py`: loads/saves `~/.kwaro/config.toml` (minimal zero-dep TOML
+  parser, works on Python 3.10+ without tomllib).
+- `core/providers/base.py`: Provider interface + Message/ToolCall/ToolSpec/Response.
+- `core/providers/openai_compat.py`: Ollama/Groq/OpenAI/OpenRouter/... over stdlib
+  `urllib` (no requests dep). Local Ollama needs no key.
+- `core/providers/anthropic.py`: thin second adapter, different request/response shape.
+- `core/providers/__init__.py`: factory picks adapter from config.
+- `kwaro/chat/agent.py`: interactive loop with a governed tool registry (read_file,
+  run_analyzer, request_poc, done) and a stop condition (no tool calls) + iteration
+  cap. Tools are anonymous steps (L14), not named personas.
+- `kwaro chat <path|url>` wired into the CLI; `kwaro init` uses Config.
+- Verify: pytest 9/9 (config round-trip, factory, chat loop with a fake provider
+  exercising tool dispatch + stop + cap). `kwaro init` writes a config that reloads
+  and builds a provider. No live model needed for tests.
 
 ## Phase 3 - Static analyzers
 - secrets, injection, xss, traversal, auth (pure Python).

@@ -24,6 +24,18 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Specs: domain profiles (profiles.md), fail states (fail-states.md),
   release process (release.md).
 
+## [0.2.0] - 2026-08-03
+- Phase 2 providers: `core/config.py` (zero-dep TOML config), `core/providers/base.py`
+  (Provider interface + message/tool types), `core/providers/openai_compat.py`
+  (Ollama/Groq/OpenAI/OpenRouter over stdlib urllib, no requests dep),
+  `core/providers/anthropic.py` (thin second adapter), `core/providers/__init__.py`
+  (factory from config).
+- `kwaro/chat/agent.py`: interactive loop with governed tool registry (read_file,
+  run_analyzer, request_poc, done), stop condition + iteration cap. Anonymous steps.
+- `kwaro chat <path|url>` wired into CLI; `kwaro init` uses Config.
+- Tests: Phase 2 suite (config round-trip, factory, chat loop with fake provider).
+  Full suite 9/9 pass. Zero new runtime deps.
+
 ## [0.1.0] - 2026-08-03
 - Phase 1 core engine: `core/models.py` (Finding/Scan with L7 + math fields),
   `core/storage.py` (SQLite persisting math fields), `core/workspace.py`

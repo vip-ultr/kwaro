@@ -125,7 +125,7 @@ def cmd_scan(target: str) -> int:
 
 def cmd_init() -> int:
     print("kwaro: setting up (free, local, offline by default)...")
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    from .core.config import Config
     has_ollama = os.path.exists("/usr/bin/ollama") or os.path.exists(
         os.path.expanduser("~/.ollama"))
     if has_ollama:
@@ -134,11 +134,83 @@ def cmd_init() -> int:
         print("  [1/3] Ollama not found. Install from https://ollama.com (free, local).")
     print("  [2/3] Recommended model: a code-capable 14B (e.g. qwen2.5-coder:14b).")
     print("  [3/3] Writing ~/.kwaro/config.toml (provider=ollama, paid is opt-in BYOK).")
-    with open(CONFIG_PATH, "w") as fh:
-        fh.write('[provider]\nname = "ollama"\n')
-        fh.write('base_url = "http://localhost:11434/v1"\napi_key = ""\n')
-        fh.write('model = "qwen2.5-coder:14b"\n')
-    print("Done. Static-only works now; add a provider with `kwaro init` + Ollama pull.")
+    Config().save()
+    print("Done. Static-only works now; point provider at a hosted model via BYOK if wanted.")
+    return 0
+
+
+def cmd_chat(target: str) -> int:
+    from .core.config import Config
+    from .core.providers import from_config
+    from .core.workspace import Workspace
+    from .chat.agent import ChatAgent
+    from .core.providers.base import ToolSpec
+
+    cfg = Config.load()
+    ws = Workspace.from_target(target)
+    provider = from_config(cfg)
+    print(f"kwaro chat: provider={provider.label}")
+    print(f"kwaro chat: workspace={ws.root} (target={target})")
+
+    agent = ChatAgent(provider, ws.root)
+
+    def read_file(args: dict) -> str:
+        path = os.path.join(ws.root, args.get("path", ""))
+        if not os.path.isfile(path):
+            return f"error: no such file {args.get('path')}"
+        return open(path, "r", errors="ignore").read()[:4000]
+
+    def run_analyzer(args: dict) -> str:
+        path = args.get("path", "")
+        full = os.path.join(ws.root, path) if path else ws.root
+        found = []
+        if os.path.isfile(full):
+            found = analyze_file(full)
+        else:
+            for p in ws.file_hashes:
+                if p.endswith((".py", ".js", ".ts", ".go", ".java", ".php", ".sol", ".rs")):
+                    found.extend(analyze_file(p))
+        if not found:
+            return "no static findings"
+        return "\n".join(f"{f.severity.value}: {f.title} @ {f.file}:{f.line_start}" for f in found)
+
+    def request_poc(args: dict) -> str:
+        return (f"PoC requested for {args.get('finding')}. In offline mode this is a "
+                f"placeholder; enable sandboxed PoC execution to generate a real test.")
+
+    def done(args: dict) -> str:
+        return "DONE: " + args.get("summary", "session complete")
+
+    agent.register(ToolSpec(
+        name="read_file", description="Read a file in the workspace by relative path.",
+        parameters={"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}),
+        read_file)
+    agent.register(ToolSpec(
+        name="run_analyzer", description="Run static analyzers over a path or the whole workspace.",
+        parameters={"type": "object", "properties": {"path": {"type": "string"}}}),
+        run_analyzer)
+    agent.register(ToolSpec(
+        name="request_poc", description="Request a proof-of-concept for a finding (offline placeholder).",
+        parameters={"type": "object", "properties": {"finding": {"type": "string"}}, "required": ["finding"]}),
+        request_poc)
+    agent.register(ToolSpec(
+        name="done", description="End the session with a short summary of findings.",
+        parameters={"type": "object", "properties": {"summary": {"type": "string"}}, "required": ["summary"]}),
+        done)
+
+    print("Type your request. kwaro will use tools, then call done. (Ctrl-C to quit)\n")
+    try:
+        while True:
+            try:
+                user_input = input("you> ").strip()
+            except EOFError:
+                break
+            if not user_input:
+                continue
+            summary = agent.run(user_input)
+            print(f"kwaro> {summary}\n")
+    except KeyboardInterrupt:
+        print("\nkwaro chat: bye.")
     return 0
 
 
@@ -146,7 +218,7 @@ def main() -> int:
     args = sys.argv[1:]
     if not args or args[0] in ("-h", "--help"):
         print("kwaro - free, local security scanner")
-        print("usage: kwaro init | kwaro scan <path|url>")
+        print("usage: kwaro init | kwaro scan <path|url> | kwaro chat <path|url>")
         return 0
     cmd = args[0]
     if cmd == "init":
@@ -156,6 +228,11 @@ def main() -> int:
             print("kwaro scan: missing <path|url>")
             return 2
         return cmd_scan(args[1])
+    if cmd == "chat":
+        if len(args) < 2:
+            print("kwaro chat: missing <path|url>")
+            return 2
+        return cmd_chat(args[1])
     print(f"unknown command: {cmd}")
     return 2
 
