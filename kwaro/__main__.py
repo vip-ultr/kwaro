@@ -11,8 +11,8 @@ Phase 1: static-only analyzers are a minimal placeholder; the math spine
 from __future__ import annotations
 
 import os
-import re
 import sys
+from typing import Optional
 
 from .core import graph, loop, verify
 from .core.models import (
@@ -31,35 +31,19 @@ from .core.workspace import Workspace
 CONFIG_PATH = os.path.join(os.path.expanduser("~"), ".kwaro", "config.toml")
 
 
-# --- minimal static analyzer (placeholder; real rules are Phase 3) ---
-SECRET_RE = re.compile(r"(api_key|secret|password|token)\s*[:=]\s*['\"][A-Za-z0-9!@#$%^&*]{8,}['\"]", re.IGNORECASE)
-SQLI_RE = re.compile(r"(SELECT|INSERT|UPDATE|DELETE)\b.*\+.*")
+# --- static analyzers (Phase 3): deterministic rule sets from kwaro/analyzers ---
+# The math spine (prove/fix/verify) still runs over whatever findings these yield.
 
+def analyze_file(path: str, only: Optional[list] = None) -> list[Finding]:
+    from .analyzers import scan_file as a_scan
 
-def analyze_file(path: str) -> list[Finding]:
     out: list[Finding] = []
     try:
         with open(path, "r", errors="ignore") as fh:
-            for i, line in enumerate(fh, 1):
-                if SECRET_RE.search(line):
-                    out.append(Finding(
-                        title="Possible hardcoded secret", severity=Severity.MEDIUM,
-                        cwe="CWE-798", rule_id="static.secret", source="static",
-                        confidence=Confidence.MED, file=path, line_start=i,
-                        snippet=line.strip()[:120],
-                        description="A literal secret-like value was found in source.",
-                    ))
-                if SQLI_RE.search(line):
-                    out.append(Finding(
-                        title="Possible SQL injection (string concat into query)",
-                        severity=Severity.HIGH, cwe="CWE-89", rule_id="static.sqli",
-                        source="static", confidence=Confidence.MED, file=path,
-                        line_start=i, snippet=line.strip()[:120],
-                        description="Query built by string concatenation may allow injection.",
-                    ))
+            lines = fh.readlines()
     except OSError:
-        pass
-    return out
+        return out
+    return a_scan(path, lines, only)
 
 
 def prove(f: Finding) -> None:
@@ -83,16 +67,21 @@ def verify_finding(f: Finding) -> None:
         f.stage = Stage.VERIFY
 
 
-def cmd_scan(target: str) -> int:
-    print(f"kwaro: scanning {target} (mode: static-only, math spine on)")
+def cmd_scan(target: str, profile: str = "generic") -> int:
+    from .analyzers import enabled_names
+    from .core.profiles import Profile
+
+    prof = Profile.load(profile)
+    only = enabled_names(prof.enable) if prof.enable else None
+    print(f"kwaro: scanning {target} (profile: {profile}, {len(only) if only else 'all'} analyzers, math spine on)")
     ws = Workspace.from_target(target)
     findings: list[Finding] = []
     for p in ws.file_hashes:
-        if p.endswith((".py", ".js", ".ts", ".go", ".java", ".php", ".sol", ".rs")):
-            findings.extend(analyze_file(p))
+        if p.endswith((".py", ".js", ".ts", ".go", ".java", ".php", ".sol", ".rs", ".html", ".jsx", ".vue", ".hbs", ".ejs")):
+            findings.extend(analyze_file(p, only))
 
     scan = Scan(target=target, target_type=ws.target_type, commit=ws.commit,
-                provider="static", model="none", profile="generic")
+                provider="static", model="none", profile=profile)
     store = Storage()
     store.save_scan(scan)
 
@@ -227,7 +216,14 @@ def main() -> int:
         if len(args) < 2:
             print("kwaro scan: missing <path|url>")
             return 2
-        return cmd_scan(args[1])
+        profile = "generic"
+        rest = args[1:]
+        if "--profile" in rest:
+            idx = rest.index("--profile")
+            if idx + 1 < len(rest):
+                profile = rest[idx + 1]
+                rest = rest[:idx] + rest[idx + 2:]
+        return cmd_scan(rest[0], profile)
     if cmd == "chat":
         if len(args) < 2:
             print("kwaro chat: missing <path|url>")

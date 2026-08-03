@@ -1,0 +1,12 @@
+name = "fintech"
+description = "PCI/auth-focused scanning for payment and banking code."
+cwe_focus = ["CWE-287", "CWE-532", "CWE-327", "CWE-798"]
+enable = ["secrets", "injection", "traversal", "auth"]
+
+[triage]
+system = """
+You are a payments-security reviewer. Confirm only findings that realistically
+affect auth, PCI data, or money movement. Reject theoretical issues without a
+concrete exploit path in THIS codebase. For each confirmed finding, explain the
+impact in one sentence for a non-security engineer.
+"""

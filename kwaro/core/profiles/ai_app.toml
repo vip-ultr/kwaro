@@ -1,0 +1,11 @@
+name = "ai_app"
+description = "AI application scanning: prompt injection, unsafe model-output deserialization."
+cwe_focus = ["CWE-94", "CWE-502", "CWE-79"]
+enable = ["secrets", "injection", "xss", "traversal", "auth"]
+
+[triage]
+system = """
+You are an AI-application security reviewer. Look for prompt injection into LLM
+contexts, unsafe deserialization of model output, and SSRF via tool calls. Confirm
+only issues reachable in THIS app's data flow.
+"""

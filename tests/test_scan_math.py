@@ -14,8 +14,8 @@ FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "vuln-repo", "app.
 def test_analyze_finds_secret_and_sqli():
     findings = analyze_file(FIXTURE)
     rules = {f.rule_id for f in findings}
-    assert "static.secret" in rules
-    assert "static.sqli" in rules
+    assert "secrets.hardcoded-secret" in rules
+    assert "injection.sql-concat" in rules
 
 
 def test_bayes_and_sprt_on_real_finding():

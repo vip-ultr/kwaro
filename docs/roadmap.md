@@ -35,14 +35,22 @@ Phased build. Each phase ends in something runnable and verified.
   exercising tool dispatch + stop + cap). `kwaro init` writes a config that reloads
   and builds a provider. No live model needed for tests.
 
-## Phase 3 - Static analyzers
-- secrets, injection, xss, traversal, auth (pure Python).
-- Per-domain profiles (fintech, blockchain, ai_app).
-- Verify: analyzers flag a deliberately vulnerable fixture repo.
+## Phase 3 - Static analyzers (DONE, 2026-08-03)
+- `kwaro/analyzers/base.py`: Analyzer interface + Rule + REGISTRY + scan_file().
+- `kwaro/analyzers/secrets.py`, `injection.py`, `xss.py`, `traversal.py`, `auth.py`:
+  pure-Python rule sets returning Finding objects (CWE-mapped). XSS is
+  extension-gated to web languages; secrets catches AWS keys + private-key blocks.
+- `kwaro/analyzers/__init__.py`: imports populate REGISTRY.
+- `kwaro/core/profiles.py` + `kwaro/core/profiles/*.toml`: generic, fintech,
+  blockchain, ai_app. Profile selects which analyzers run (docs/profiles.md).
+- `kwaro scan <path|url> [--profile fintech]` wired through the analyzer registry;
+  the Phase 1 math spine (prove/fix/verify) still runs over the findings.
+- Verify: pytest 16/16 (5 analyzers + profile filtering) on a multi-lang fixture.
+  Generic scan finds 5 candidates; fintech profile runs 4 (xss off) and finds 4.
 
 ## Phase 4 - Pipeline + proof
-- Step runner, job execution, aggregation, de-dupe, severity rankers.
-- "prover" step: generate test/PoC for candidates (v1: generate-only).
+- Step runner, job execution, aggregation, de-dupe (L4), severity rankers (L3).
+- "prover" step: generate test/PoC for candidates (v1: generate-only, sandbox off).
 - Verify: end-to-end scan of fixture produces ranked, de-duped findings + PoCs.
 
 ## Phase 5 - CLI polish

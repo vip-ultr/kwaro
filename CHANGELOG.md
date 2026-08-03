@@ -24,6 +24,16 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Specs: domain profiles (profiles.md), fail states (fail-states.md),
   release process (release.md).
 
+## [0.3.0] - 2026-08-03
+- Phase 3 static analyzers: `kwaro/analyzers/base.py` (Analyzer/Rule/REGISTRY),
+  `secrets.py`, `injection.py`, `xss.py`, `traversal.py`, `auth.py` (pure-Python,
+  CWE-mapped rule sets). XSS is extension-gated to web languages.
+- `kwaro/core/profiles.py` + `core/profiles/*.toml`: generic, fintech, blockchain,
+  ai_app. `kwaro scan --profile <name>` selects analyzers.
+- `kwaro scan` routed through the analyzer registry; Phase 1 math spine intact.
+- Tests: Phase 3 suite (5 analyzers + profile filtering) on a multi-lang fixture.
+  Full suite 16/16 pass. Zero new runtime deps.
+
 ## [0.2.0] - 2026-08-03
 - Phase 2 providers: `core/config.py` (zero-dep TOML config), `core/providers/base.py`
   (Provider interface + message/tool types), `core/providers/openai_compat.py`
