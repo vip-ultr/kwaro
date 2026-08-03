@@ -104,12 +104,23 @@ not the model.
 
 ## Install
 
+Pick whichever is easiest on your OS. The CLI has **zero third-party dependencies**
+and one pure-Python wheel covers Windows, macOS, and Linux.
+
 ```bash
+# PyPI (all OS)
 pip install kwaro          # or: uv tool install kwaro
+
+# macOS / Linux
+brew install kwaro         # after: brew tap vip-ultr/kwaro
+
+# Windows
+scoop install kwaro        # after: scoop bucket add kwaro https://github.com/vip-ultr/scoop-kwaro
+
 kwaro init                 # detect Ollama, write config (free/offline default)
 ```
 
-The CLI has **zero third-party dependencies**. The browser UI is an optional extra:
+The browser UI is an optional extra:
 
 ```bash
 pip install "kwaro[serve]" # adds fastapi, uvicorn, websockets

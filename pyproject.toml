@@ -32,3 +32,6 @@ kwaro = "kwaro.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["kwaro"]
+
+[tool.hatch.build]
+exclude = ["/.gitignore", "/dist", "/build", "**/__pycache__", "**/*.pyc"]

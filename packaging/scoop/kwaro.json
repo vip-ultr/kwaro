@@ -1,0 +1,25 @@
+{
+  "version": "0.6.0",
+  "description": "Free, local security scanner: find, prove, fix, verify vulnerabilities on your machine.",
+  "homepage": "https://github.com/vip-ultr/kwaro",
+  "license": "AGPL-3.0",
+  "architecture": {
+    "64bit": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "0ec9396e0bcb353cfa5b31f0412ee729edc8459ac2ec1a8015e4cb71eb18702b" },
+    "arm64": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v0.6.0/kwaro-0.6.0-py3-none-any.whl", "hash": "0ec9396e0bcb353cfa5b31f0412ee729edc8459ac2ec1a8015e4cb71eb18702b" }
+  },
+  "depends": ["python"],
+  "installer": {
+    "script": "python -m pip install --user kwaro==0.6.0"
+  },
+  "post_install": [
+    "kwaro --help"
+  ],
+  "bin": ["kwaro"],
+  "checkver": "github",
+  "autoupdate": {
+    "architecture": {
+      "64bit": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v$version/kwaro-$version-py3-none-any.whl" },
+      "arm64": { "url": "https://github.com/vip-ultr/kwaro/releases/download/v$version/kwaro-$version-py3-none-any.whl" }
+    }
+  }
+}
