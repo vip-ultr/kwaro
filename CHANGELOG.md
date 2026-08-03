@@ -24,6 +24,17 @@ adheres to [Semantic Versioning](https://semver.org/).
 - Specs: domain profiles (profiles.md), fail states (fail-states.md),
   release process (release.md).
 
+## [0.6.0] - 2026-08-03
+- Phase 6 browser UI: `kwaro/web/static/` hand-written bundle (no React build, L11)
+  with finding cards that expose the math (posterior, SPRT verdict, composite
+  confidence, PoC state); activity + chat panels.
+- `kwaro/serve.py` - FastAPI app (lazy import so the CLI stays zero-dep, L1): serves
+  the bundle, `POST /api/scan` (runs the real pipeline, returns findings w/ math),
+  `POST /api/chat`, `WS /ws/activity`. `kwaro serve [--port 8080]`.
+- `pyproject.toml` `serve` extra = fastapi, uvicorn, websockets (optional).
+- Tests: 5 serve tests via FastClient (index, static, scan runs pipeline + returns
+  math, SARIF export, chat reply). Full suite 35/35 pass. CLI runs with extra absent.
+
 ## [0.5.0] - 2026-08-03
 - Phase 5 CLI polish: `core/export.py` (SARIF 2.1.0 + JSON carrying L7 fields + math
   under properties/summary); `kwaro scan --format sarif|json`.

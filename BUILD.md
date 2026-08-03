@@ -33,28 +33,26 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 6 (Phases 0-5 shipped)
+## Where to start: Phase 7 (Phases 0-6 shipped)
 
-Phases 0-5 are DONE and verified (commits in git history). Do NOT rebuild core/
+Phases 0-6 are DONE and verified (commits in git history). Do NOT rebuild core/
 (models, storage, workspace, verify, graph, loop, config, profiles, rank, pipeline,
 export), the providers stack, kwaro/chat/agent.py, kwaro/analyzers/ (base, secrets,
-injection, xss, traversal, auth, prover), or the math spine. Start here:
+injection, xss, traversal, auth, prover), kwaro/web/ (static bundle), or kwaro/serve.py.
+Start here:
 
-Goal (Phase 6): the browser UI via the `serve` extra (FastAPI + hand-written static
-bundle, L11). A single page that shows findings as cards with the math exposed
-(posterior, SPRT verdict, graph trace), a live-activity feed, and a chat panel that
-drives `kwaro chat` over WebSocket. No React build in v1 (L11: vanilla JS + tiny helper).
+Goal (Phase 7): docs, tests, packaging, release. README with real numbers from the
+eval fixture (L13), CONTRIBUTING + community docs, a full green CI pytest run, and
+publish to PyPI as `kwaro` (AGPL-3.0). Keep zero CLI runtime deps; `serve` stays
+an optional extra.
 
-Concrete tasks (in `kwaro/`):
-1. `serve.py` (or `web/`) - FastAPI app: serves the static bundle + a `/ws` endpoint
-   that streams scan activity and proxies chat. Uses only the `serve` extra deps.
-2. `web/static/index.html` + `web/static/app.js` + `web/static/style.css` - finding
-   cards (severity band color, confidence, posterior, SPRT), activity log, chat box.
-3. Wire `kwaro serve [--port 8080]` in `__main__.py`; it imports FastAPI lazily so the
-   CLI still has zero runtime deps without the extra installed.
-4. Eval (L13) numbers already asserted in tests/test_eval.py; surface them in README.
-
-- `kwaro init` works and writes config.
+Concrete tasks:
+1. README: add a "How it works / the math" section linking docs/math.md, and a
+   results table from tests/test_eval.py (recall per rule on the seeded fixture).
+2. Add CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md (skeletons exist in docs/).
+3. CI: a workflow running `pytest` on Linux/macOS/Windows (Python 3.10-3.12).
+4. Package: `uv build` / `python -m build`; `uv pip install -e ".[serve]"` for UI dev.
+5. Release process per docs/release.md; tag v0.6.0.
 - `kwaro scan ./some-repo` clones/copies, records a Scan row, runs the math spine
   end to end. A minimal static analyzer (secret + SQLi regex) is in place so the
   loop has real findings to prove/verify; full per-language analyzers are Phase 3.

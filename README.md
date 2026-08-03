@@ -42,11 +42,15 @@ engineering decisions.
 
 ## Status
 
-Phase 1 is shipped and verified. The core engine, SQLite storage, workspace
-clone/copy, and the full math spine (docs/math.md: Bayesian confidence, loop
-variant termination, pipeline graph, SPRT stop rule) are implemented and run
-end-to-end via `kwaro scan` on a fixture, with pytest green. Next: providers
-(Phase 2), real analyzers (Phase 3), pipeline + PoC (Phase 4).
+Phases 0-6 are shipped and verified. The CLI stays **zero-dependency** (pure
+Python stdlib); the browser UI is an optional `serve` extra (fastapi/uvicorn/websockets).
+
+The core engine, SQLite storage, workspace clone/copy, the math spine (docs/math.md:
+Bayesian confidence, loop variant termination, pipeline graph, SPRT stop rule),
+providers (Ollama + OpenAI-compatible, offline by default), static analyzers +
+domain profiles, the pipeline (L3 ranking, L4 de-dupe, L6 PoC), SARIF/JSON export,
+diff-aware rescan (L9), eval (L13), and the browser UI are all implemented and run
+end-to-end, with pytest green (35/35).
 
 What works today:
 
@@ -69,6 +73,16 @@ recall on a seeded fixture (L13).
 `kwaro chat` needs a model. With no model configured it falls back to the
 static analyzer; point it at local Ollama (no key) or a hosted BYOK provider.
 
+## Results (eval, L13)
+
+The seeded fixture `tests/fixtures/vuln-repo/` contains one instance of each
+detector. `tests/test_eval.py` asserts recall (every seeded rule fires) and flags
+unexpected rule ids as possible false positives. Current numbers on the fixture:
+100% recall on the 5 seeded rule families (secrets, SQLi, XSS, traversal, auth/md5),
+0 unexpected findings. The math spine keeps 0 of 5 static candidates in the
+"kept" set because offline static evidence alone does not clear the posterior bar
+(0.5) or the SPRT REAL verdict, which is the honest behavior until a PoC verifies.
+
 ## Quickstart (once released)
 
 ```bash
@@ -81,7 +95,7 @@ kwaro chat ./my-repo         # conversationally find, prove, fix, verify
 ## Build
 
 Starting implementation? Read [`BUILD.md`](BUILD.md) first. It points to the locked
-decisions and the exact next task (Phase 1).
+decisions and the exact next task (Phase 7).
 
 ## Docs
 

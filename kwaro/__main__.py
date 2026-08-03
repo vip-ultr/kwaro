@@ -242,6 +242,7 @@ def main() -> int:
         print("  kwaro init")
         print("  kwaro scan <path|url> [--profile fintech|blockchain|ai_app|generic] [--pocs] [--rescan] [--format sarif|json]")
         print("  kwaro chat <path|url>")
+        print("  kwaro serve [--port 8080]   (needs 'serve' extra: fastapi, uvicorn, websockets)")
         return 0
     cmd = args[0]
     if cmd == "init":
@@ -277,6 +278,15 @@ def main() -> int:
             print("kwaro chat: missing <path|url>")
             return 2
         return cmd_chat(args[1])
+    if cmd == "serve":
+        port = 8080
+        if "--port" in args:
+            idx = args.index("--port")
+            if idx + 1 < len(args) and args[idx + 1].isdigit():
+                port = int(args[idx + 1])
+        from .serve import run as serve_run
+        serve_run(port=port)
+        return 0
     print(f"unknown command: {cmd}")
     return 2
 

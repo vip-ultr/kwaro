@@ -75,9 +75,17 @@ Phased build. Each phase ends in something runnable and verified.
 - Verify: SARIF/JSON written and parse; rescan reports 0 changed when baseline
   matches; eval asserts all seeded rules detected. Zero new runtime deps.
 
-## Phase 6 - Browser UI (serve)
-- `kwaro serve`: FastAPI + static bundle, finding cards, live activity, chat panel.
-- Verify: UI shows a scan; chat drives a scan.
+## Phase 6 - Browser UI (serve) (DONE, 2026-08-03)
+- `kwaro/web/static/` - hand-written bundle (index.html, style.css, app.js), no
+  React build (L11). Finding cards color-coded by severity with the math exposed
+  (posterior, SPRT verdict, composite confidence, PoC state). Activity + chat panels.
+- `kwaro/serve.py` - FastAPI app (lazy import so the CLI stays zero-dep, L1): serves
+  the bundle, `POST /api/scan` (runs the real pipeline, returns findings w/ math),
+  `POST /api/chat`, `WS /ws/activity`. `kwaro serve [--port 8080]`.
+- `pyproject.toml` `serve` extra = fastapi, uvicorn, websockets (optional).
+- Verify: pytest 35/35 including 5 serve tests via TestClient (index, static, scan
+  runs pipeline + returns math, SARIF export, chat reply). CLI still runs with the
+  extra absent (prints install hint). Zero CLI runtime deps.
 
 ## Phase 7 - Docs, tests, release
 - README with screenshots, CONTRIBUTING, full pytest suite, package on PyPI.

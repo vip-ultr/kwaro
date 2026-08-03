@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>kwaro - security scanner</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="chev">&#x2039;</span> kwaro</div>
+    <div class="sub">free, local security scanner - the math is visible</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel scan-panel">
+      <h2>Scan</h2>
+      <div class="row">
+        <input id="target" placeholder="./my-repo or https://github.com/owner/repo" />
+        <select id="profile">
+          <option value="generic">generic</option>
+          <option value="fintech">fintech</option>
+          <option value="blockchain">blockchain</option>
+          <option value="ai_app">ai_app</option>
+        </select>
+        <button id="scanBtn">Scan</button>
+      </div>
+      <div class="row flags">
+        <label><input type="checkbox" id="pocs" /> generate PoCs</label>
+        <label><input type="checkbox" id="rescan" /> rescan (diff-aware)</label>
+        <label><input type="checkbox" id="asJson" /> export JSON</label>
+        <select id="fmt">
+          <option value="">report</option>
+          <option value="sarif">SARIF</option>
+          <option value="json">JSON</option>
+        </select>
+      </div>
+      <div id="activity" class="activity"></div>
+    </section>
+
+    <section class="panel findings-panel">
+      <h2>Findings <span id="counts" class="muted"></span></h2>
+      <div id="findings" class="findings"></div>
+    </section>
+
+    <section class="panel chat-panel">
+      <h2>Chat</h2>
+      <div id="chatLog" class="chat-log"></div>
+      <div class="row">
+        <input id="chatInput" placeholder="ask about the target..." />
+        <button id="chatBtn">Send</button>
+      </div>
+      <div class="muted small">Needs a model (local Ollama or BYOK). Falls back to static if none.</div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
