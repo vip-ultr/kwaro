@@ -239,14 +239,14 @@ above is pure stdlib, zero-dep, and offline-capable regardless of which model ba
 
 ## Status
 
-- [x] Bayesian confidence - prototyped and verified
-- [x] Loop variant termination - prototyped and verified
-- [x] Pipeline graph + trace validator - prototyped and verified
-- [x] SPRT stop rule - prototyped and verified (added 2026-08-03 from research)
-- [ ] Precision/recall tracking per scan - spec'd, not yet implemented
-- [ ] Wire into core/models.py, core/loop.py, core/graph.py (Phase 1/2)
-- [ ] Expose variant + posterior + SPRT decision + precision/recall in report
-- [ ] Add pytest coverage for each primitive
+- [x] Bayesian confidence - prototyped and verified, and wired into core/verify.py + core/models.py
+- [x] Loop variant termination - prototyped and verified, and wired into core/loop.py
+- [x] Pipeline graph + trace validator - prototyped and verified, and wired into core/graph.py
+- [x] SPRT stop rule - prototyped and verified (added 2026-08-03 from research), wired into core/verify.py
+- [x] Wire into core/models.py, core/loop.py, core/graph.py, core/verify.py (Phase 1, shipped 2026-08-03)
+- [x] pytest coverage for each primitive - tests/test_scan_math.py (4 tests pass, plus per-module checks)
+- [ ] Precision/recall tracking per scan - schema field exists (Scan.precision/recall), not yet computed at scan end
+- [ ] Expose variant + posterior + SPRT decision + precision/recall in the terminal/browser report UI
 
 ## Update log
 
@@ -256,3 +256,6 @@ above is pure stdlib, zero-dep, and offline-capable regardless of which model ba
   fixed 0.60 cutoff was ad-hoc; added precision/recall quality framing; documented
   the honest limit vs full formal verification. All four primitives re-verified on
   example input.
+- 2026-08-03: Phase 1 shipped. All four primitives implemented in core/ (verify,
+  loop, graph, models) and exercised end-to-end by `kwaro scan` on a fixture;
+  persisted to SQLite; covered by pytest.

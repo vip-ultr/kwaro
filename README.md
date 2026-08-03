@@ -42,8 +42,20 @@ engineering decisions.
 
 ## Status
 
-Active build. See [`docs/roadmap.md`](docs/roadmap.md). Early phases: core engine,
-providers, static analyzers, pipeline + PoC, CLI + SARIF, then the browser UI.
+Phase 1 is shipped and verified. The core engine, SQLite storage, workspace
+clone/copy, and the full math spine (docs/math.md: Bayesian confidence, loop
+variant termination, pipeline graph, SPRT stop rule) are implemented and run
+end-to-end via `kwaro scan` on a fixture, with pytest green. Next: providers
+(Phase 2), real analyzers (Phase 3), pipeline + PoC (Phase 4).
+
+What works today:
+
+```bash
+python3 -m kwaro init                      # detect Ollama, write config (free/offline default)
+python3 -m kwaro scan ./my-repo            # static scan + math spine, math-aware report
+```
+
+`kwaro chat` and `kwaro serve` arrive in later phases. See [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Quickstart (once released)
 

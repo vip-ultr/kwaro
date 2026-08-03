@@ -52,14 +52,19 @@ Concrete tasks (in `kwaro/`):
 6. `cli.py` / `__main__.py` - `kwaro init`, `kwaro scan <path|url>` (static-only for
    now), `kwaro chat` (stub that explains static-only until Phase 2).
 
-Definition of done for Phase 1:
+Definition of done for Phase 1 (SHIPPED 2026-08-03):
 - `kwaro init` works and writes config.
-- `kwaro scan ./some-repo` clones/copies, records a Scan row, finds NOTHING yet
-  (analyzers are Phase 3) but runs end-to-end without error.
+- `kwaro scan ./some-repo` clones/copies, records a Scan row, runs the math spine
+  end to end. A minimal static analyzer (secret + SQLi regex) is in place so the
+  loop has real findings to prove/verify; full per-language analyzers are Phase 3.
 - `kwaro scan <git-url>` clones and scans.
-- SQLite has the scan + (later) findings.
+- SQLite has the scan + findings, including the math fields (prior, posterior,
+  evidence, sprt_decision, stage, loop_variant).
 - `python -m kwaro` and `kwaro` (after install) both run. Zero new runtime deps.
-- A pytest smoke test confirms the above on a tiny fixture (add `tests/fixtures/`).
+- A pytest smoke test confirms the above on a tiny fixture (tests/fixtures/).
+
+NOTE FOR A FRESH SESSION: Phase 1 is complete. Do NOT rebuild models/storage/
+workspace/verify/graph/loop. Start at Phase 2 (providers + `kwaro chat` loop).
 
 ## Reading order for a new session
 

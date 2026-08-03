@@ -6,11 +6,18 @@ Phased build. Each phase ends in something runnable and verified.
 - Repo, folder structure, LICENSE (AGPL-3.0), brand palette, logo, docs skeleton.
 - `python -m kwaro` runs. Zero runtime deps.
 
-## Phase 1 - Core engine + config
-- `core/models.py` (Finding, Severity, Scan), `core/config.py`, `core/storage.py`
-  (SQLite), `core/workspace.py` (clone/copy).
-- `kwaro init` writes `~/.kwaro/config.toml`.
-- Verify: config loads, SQLite creates, workspace clones a test repo.
+## Phase 1 - Core engine + math spine (DONE, 2026-08-03)
+- `core/models.py` (Finding, Scan with L7 + math fields), `core/storage.py`
+  (SQLite, persists math fields), `core/workspace.py` (clone/copy + hashing).
+- Math spine (docs/math.md): `core/verify.py` (Bayesian update + SPRT),
+  `core/graph.py` (FIND/PROVE/FIX/VERIFY/DONE state machine + trace validator),
+  `core/loop.py` (bounded loop with variant termination).
+- `kwaro init` writes `~/.kwaro/config.toml`; `kwaro scan <path|url>` runs the
+  analyzer + math spine end to end and prints a math-aware report.
+- Verify: `kwaro scan tests/fixtures/vuln-repo` finds secret + SQLi, runs the
+  loop, validates the pipeline graph, persists findings to SQLite. pytest: 4/4.
+- Note: `core/config.py` was folded into `kwaro init` + providers (Phase 2); the
+  schema lives in L7, not a separate module yet.
 
 ## Phase 2 - Providers
 - `openai_compat.py` (Ollama/Groq/OpenAI/...), `anthropic.py`.
