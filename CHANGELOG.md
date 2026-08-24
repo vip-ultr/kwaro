@@ -13,6 +13,15 @@ adheres to [Semantic Versioning](https://semver.org/).
   sandbox executor then runs (offline placeholder stays the default).
 - CI/CD guard mode (`--diff` + SARIF to GitHub code scanning).
 
+## [0.7.1] - 2026-08-24
+
+### Fixed
+- CLI scan report now shows its work: kept set (or an honest explanation of why
+  static-only keeps nothing + how to change it), top 20 ranked findings with
+  file:line / rule id / snippet / posterior / CWE, and an evidence trail
+  (scan id, files hashed, commit, loop trace, graph validity, sqlite location).
+  Previously a scan printed only counts, so findings were invisible.
+
 ## [0.7.0] - 2026-08-24
 
 ### Added - real analysis depth (`kwaro[ast]` extra)
