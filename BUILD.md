@@ -33,26 +33,39 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 8 Phase A is SHIPPED - resume at Phase B (taint)
+## Where to start: Phases 8 A-D are ALL SHIPPED - next is language rollout (Go, Java, Solidity, C/C++)
 
-Phase A (Rust/Solana AST depth) shipped and verified (2026-08-24 session):
-`kwaro/ast/` exists (parser.py lazy tree-sitter cache + rules/rust_solana.py with
-missing-signer, missing-ownership, unchecked-arithmetic). Seeded fixture at
-tests/fixtures/rust-solana/programs/vault/src/lib.rs; tests/test_phase8.py asserts
-recall + FP guard; suite 40/40 green; `kwaro scan --profile blockchain` returns real
-findings on the fixture. Without the `ast` extra the analyzer returns [] cleanly
-(verified by blocking tree_sitter imports) - zero-dep CLI intact.
+Phase 8 core shipped 2026-08-24 (commits 04b16d8..HEAD), suite 52/52 green:
+- Phase A: kwaro/ast/parser.py + rules/rust_solana.py (signer CWE-862 / ownership
+  CWE-284 / unchecked arith CWE-190); fixture tests/fixtures/rust-solana/;
+  tests/test_phase8.py.
+- Phase B: kwaro/ast/taint.py intraprocedural taint (Python + JS tables),
+  registered as analyzer 'taint_ast' in generic/fintech profiles; fixtures
+  py-web + js-web; tests/test_phase8b.py (recall + sanitizer FP guards).
+- Phase C: analyzers/sandbox.py - opt-in PoC execution (`--execute-pocs`): no
+  network (sockets blocked), timeout, VERIFIED only on KWaro_POC_CONFIRMED +
+  exit 0. Verified end to end: confirming PoCs move posterior to 0.635 /
+  SPRT REAL -> kept=3 on the py fixture (first scan that KEEPS findings).
+  tests/test_phase8c.py.
+- Phase D: docs/coverage.md rewritten from the evals; README honesty section
+  updated (ast+taint shipped, sandbox shipped, intraprocedural-only scope).
 
 Phases 0-7 are DONE and verified (commits in git history) and kwaro is published to
 PyPI/Homebrew/Scoop. Do NOT rebuild the existing engine (core/, providers, analyzers/
 regex layer, chat, web, serve, packaging).
 
-Next: Phase B of docs/plan-phase8.md - intraprocedural taint (`kwaro/ast/taint.py`),
-then Phase C (real PoC execution per L6), Phase D (coverage matrix per-language eval).
-Language order after Rust: Python/JS -> Go -> Java -> Solidity -> C/C++/PHP.
+NEXT WORK (in order):
+1. Extend taint LANGS tables to Go, then Java (grammar already in `ast` extra);
+   seed fixtures go-svc/, java-svc/; eval per language before claiming it.
+2. Solidity AST rules (reentrancy, tx-origin, unchecked math) via
+   tree-sitter-solidity (community grammar).
+3. Model-driven prove step: wire providers into generate_poc so Ollama/BYOK can
+   write real PoCs that the sandbox then executes (offline placeholder stays default).
+4. CI/CD guard mode (`--diff` + SARIF to code scanning) still marked planned in README.
 
 Honesty rules carried from the plan: no language claimed until its eval passes; we do not
-claim to beat CodeQL; regex stays the zero-dep default; `ast` is opt-in depth only.
+claim to beat CodeQL; regex stays the zero-dep default; `ast` is opt-in depth only;
+taint is intraprocedural only; sandbox is process-level, not a VM.
 
 Existing verified behavior to preserve (do not regress):
 - `kwaro scan <git-url|path>` clones/copies, records a Scan row, runs the math spine end
