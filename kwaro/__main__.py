@@ -133,15 +133,37 @@ def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
 
     print(f"\n{len(result['unique'])} unique findings (from {len(findings)} raw), "
           f"{len(kept)} kept after prove/verify\n")
-    for f in kept:
+    if kept:
+        print("KEPT (belief cleared the bar):")
+        for f in kept:
+            conf = composite_confidence(f)
+            print(f"  {f.severity.value.upper():8} {f.file}:{f.line_start:<4} {f.title}")
+            print(f"           conf={conf:.3f} prior={f.prior:.3f} posterior={f.posterior:.3f} "
+                  f"sprt={f.sprt_decision.value} poc={f.poc_state.value}")
+    else:
+        print("Nothing KEPT yet - that is expected without executed PoCs. Static-only "
+              "evidence cannot clear the posterior/SPRT bar by design (no false-positive\n"
+              "flood). Run with --execute-pocs to let the sandbox verify findings, or view "
+              "everything found below / in the report.")
+    ranked = result["ranked"]
+    show_n = min(len(ranked), 20)
+    print(f"\nTOP FINDINGS ({show_n} of {len(ranked)}, ranked by severity x confidence):")
+    for f in ranked[:show_n]:
         conf = composite_confidence(f)
-        print(f"  {f.severity.value.upper():8} {f.file}:{f.line_start:<4} {f.title}")
-        print(f"           conf={conf:.3f} prior={f.prior:.3f} posterior={f.posterior:.3f} "
-              f"sprt={f.sprt_decision.value} poc={f.poc_state.value}")
-    print(f"\nloop variant trace: {' -> '.join(str(x) for x in result['trace'])}")
-    print(f"pipeline graph valid: {result['graph_valid']} ({result['graph_why']})")
-    print(f"de-duplicated: {len(findings)} raw -> {len(result['unique'])} unique")
-    print("kwaro: scan complete (findings persisted to ~/.kwaro/kwaro.db)")
+        loc = f"{f.file}:{f.line_start}"
+        print(f"  {f.severity.value.upper():8} {loc:<48} [{f.rule_id}] {f.title[:60]}")
+        print(f"           {f.snippet[:100]}")
+        print(f"           posterior={f.posterior:.3f} sprt={f.sprt_decision.value} "
+              f"cwe={f.cwe}")
+    if len(ranked) > show_n:
+        print(f"  ... and {len(ranked) - show_n} more. Full list:")
+        print(f"  kwaro scan <target> --format json   # writes kwaro-report.json")
+    print(f"\nEvidence trail: scan id {scan.id[:8]} | target {scan.target} | profile {scan.profile}"
+          f"\n  files hashed: {len(ws.file_hashes)} | commit: {(ws.commit or 'n/a')[:10]}"
+          f"\n  loop trace: {' -> '.join(str(x) for x in result['trace'])} | graph valid: "
+          f"{result['graph_valid']} ({result['graph_why']})"
+          f"\n  dedup: {len(findings)} raw -> {len(result['unique'])} unique"
+          f"\n  persisted: ~/.kwaro/kwaro.db (queryable sqlite; every finding carries its math)")
     return 0
 
 
