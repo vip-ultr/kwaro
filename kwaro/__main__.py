@@ -68,7 +68,8 @@ def verify_finding(f: Finding) -> None:
 
 
 def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
-             provider_for_poc=None, rescan: bool = False, fmt: Optional[str] = None) -> int:
+             provider_for_poc=None, rescan: bool = False, fmt: Optional[str] = None,
+             execute_pocs: bool = False) -> int:
     from .analyzers import enabled_names
     from .core.profiles import Profile
     from .core.rank import composite_confidence
@@ -109,6 +110,7 @@ def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
     result = run_pipeline(
         findings, prove, fix, verify_finding, cap=12,
         generate_pocs=generate_pocs, provider=provider_for_poc,
+        execute_pocs=execute_pocs,
     )
     for f in result["ranked"]:
         f.scan_id = scan.id
@@ -297,6 +299,12 @@ def main() -> int:
             if idx + 1 < len(rest):
                 profile = rest[idx + 1]
                 rest = rest[:idx] + rest[idx + 2:]
+        execute_pocs = False
+        if "--execute-pocs" in rest:
+            # implies --pocs: generate then run each PoC in the sandbox
+            generate_pocs = True
+            execute_pocs = True
+            rest = [a for a in rest if a != "--execute-pocs"]
         if "--pocs" in rest:
             generate_pocs = True
             rest = [a for a in rest if a != "--pocs"]
@@ -308,7 +316,8 @@ def main() -> int:
             if idx + 1 < len(rest):
                 fmt = rest[idx + 1]
                 rest = rest[:idx] + rest[idx + 2:]
-        return cmd_scan(rest[0], profile, generate_pocs, None, rescan, fmt)
+        return cmd_scan(rest[0], profile, generate_pocs, None, rescan, fmt,
+                        execute_pocs=execute_pocs)
     if cmd == "chat":
         if len(args) < 2:
             print("kwaro chat: missing <path|url>")

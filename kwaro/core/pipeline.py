@@ -22,6 +22,7 @@ def run_pipeline(
     verify_finding: Callable[[Finding], None],
     cap: int = 12,
     generate_pocs: bool = False,
+    execute_pocs: bool = False,
     poc_dir: Optional[str] = None,
     provider=None,
 ) -> dict:
@@ -52,6 +53,19 @@ def run_pipeline(
         from ..analyzers.prover import generate_poc
         for f in ranked:
             generate_poc(f, poc_dir or os.path.join(os.getcwd(), "kwaro_pocs"), provider)
+
+    # Optional sandbox execution of generated PoCs (Phase C / L6). Off by
+    # default; when enabled, a VERIFIED PoC is strong evidence and updates the
+    # belief math before the kept-set is computed.
+    if execute_pocs:
+        from ..analyzers.sandbox import execute_poc, CONFIRM_MARKER  # noqa: F401
+        for f in ranked:
+            if getattr(f, "poc_path", None):
+                ev = execute_poc(f)
+                if ev["state"] == "verified":
+                    verify.bayes_update(f, "poc: executed in kwaro sandbox, confirmed",
+                                        l_real=3.0, l_fake=0.2)
+                    verify.evaluate(f)
 
     kept = [f for f in ranked if f.sprt_decision == SprtDecision.REAL or f.posterior >= 0.5]
     return {
