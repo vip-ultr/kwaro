@@ -1,4 +1,4 @@
 name = "generic"
 description = "Generic scanning across all languages and frameworks."
 cwe_focus = ["CWE-79", "CWE-89", "CWE-78", "CWE-22", "CWE-287", "CWE-798"]
-enable = ["secrets", "injection", "xss", "traversal", "auth"]
+enable = ["secrets", "injection", "xss", "traversal", "auth", "taint_ast"]

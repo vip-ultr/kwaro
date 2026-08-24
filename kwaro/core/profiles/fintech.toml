@@ -1,7 +1,7 @@
 name = "fintech"
 description = "PCI/auth-focused scanning for payment and banking code."
 cwe_focus = ["CWE-287", "CWE-532", "CWE-327", "CWE-798"]
-enable = ["secrets", "injection", "traversal", "auth"]
+enable = ["secrets", "injection", "traversal", "auth", "taint_ast"]
 
 [triage]
 system = """

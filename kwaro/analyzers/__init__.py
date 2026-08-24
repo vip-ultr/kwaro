@@ -17,6 +17,7 @@ from . import secrets, injection, xss, traversal, auth  # noqa: F401  (populates
 # registry so profiles/pipeline need no special-casing.
 try:  # noqa: F401
     from ..ast.rules import rust_solana  # populates REGISTRY with rust_solana
+    from ..ast.rules import taint as _taint_rule  # populates REGISTRY with taint_ast
 except ImportError:
     pass
 
