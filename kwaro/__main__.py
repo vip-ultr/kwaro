@@ -143,19 +143,40 @@ def cmd_scan(target: str, profile: str = "generic", generate_pocs: bool = False,
     return 0
 
 
-def cmd_init() -> int:
-    print("kwaro: setting up (free, local, offline by default)...")
+def cmd_init(provider: str = "ollama") -> int:
+    print("kwaro: setting up (free by default)...")
     from .core.config import Config
-    has_ollama = os.path.exists("/usr/bin/ollama") or os.path.exists(
-        os.path.expanduser("~/.ollama"))
-    if has_ollama:
-        print("  [1/3] Ollama detected (local, free, no API key).")
+    import os
+
+    provider = (provider or "ollama").lower()
+    groq_key = os.environ.get("GROQ_API_KEY", "")
+
+    # If the user didn't force a provider, prefer Groq when its key is present
+    # (no local model pull needed); otherwise fall back to Ollama (local, offline).
+    if provider == "auto":
+        provider = "groq" if groq_key else "ollama"
+
+    if provider == "groq":
+        if not groq_key:
+            print("  GROQ_API_KEY not set in the environment. Either export it first,")
+            print("  or run: kwaro init --provider ollama (local, free, no key).")
+            return 1
+        cfg = Config.groq()
+        print("  [1/3] Groq selected (free API, no local model pull needed).")
+        print("  [2/3] Model: " + cfg.model + " (override with kwaro init --provider groq after setting GROQ_API_KEY).")
+        print("  [3/3] Writing ~/.kwaro/config.toml (provider=groq, key from GROQ_API_KEY).")
     else:
-        print("  [1/3] Ollama not found. Install from https://ollama.com (free, local).")
-    print("  [2/3] Recommended model: a code-capable 14B (e.g. qwen2.5-coder:14b).")
-    print("  [3/3] Writing ~/.kwaro/config.toml (provider=ollama, paid is opt-in BYOK).")
-    Config().save()
-    print("Done. Static-only works now; point provider at a hosted model via BYOK if wanted.")
+        has_ollama = os.path.exists("/usr/bin/ollama") or os.path.exists(
+            os.path.expanduser("~/.ollama"))
+        if has_ollama:
+            print("  [1/3] Ollama detected (local, free, no API key).")
+        else:
+            print("  [1/3] Ollama not found. Install from https://ollama.com (free, local).")
+        print("  [2/3] Recommended model: a code-capable 14B (e.g. qwen2.5-coder:14b).")
+        print("  [3/3] Writing ~/.kwaro/config.toml (provider=ollama, paid is opt-in BYOK).")
+        cfg = Config()
+    cfg.save()
+    print("Done. Static-only works now; chat uses the configured provider.")
     return 0
 
 
@@ -249,14 +270,19 @@ def main() -> int:
     if not args or args[0] in ("-h", "--help"):
         print("kwaro - free, local security scanner")
         print("usage:")
-        print("  kwaro init")
+        print("  kwaro init [--provider groq|ollama]")
         print("  kwaro scan <path|url> [--profile fintech|blockchain|ai_app|generic] [--pocs] [--rescan] [--format sarif|json]")
         print("  kwaro chat <path|url>")
         print("  kwaro serve [--port 8080]   (needs 'serve' extra: fastapi, uvicorn, websockets)")
         return 0
     cmd = args[0]
     if cmd == "init":
-        return cmd_init()
+        provider_flag = "ollama"
+        if "--provider" in args:
+            idx = args.index("--provider")
+            if idx + 1 < len(args):
+                provider_flag = args[idx + 1]
+        return cmd_init(provider=provider_flag)
     if cmd == "scan":
         if len(args) < 2:
             print("kwaro scan: missing <path|url>")

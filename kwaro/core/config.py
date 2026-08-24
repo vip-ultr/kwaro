@@ -67,3 +67,17 @@ class Config:
     @property
     def needs_key(self) -> bool:
         return bool(self.api_key) or not self.is_local
+
+    @classmethod
+    def groq(cls, model: str = "llama-3.3-70b-versatile") -> "Config":
+        """Convenience config for Groq's free API (no local model pull needed).
+
+        Reads GROQ_API_KEY from the environment; pass api_key explicitly to bake it
+        into config.toml. Groq model ids differ from Ollama's (e.g.
+        llama-3.3-70b-versatile, qwen-2.5-coder-32b)."""
+        return cls(
+            provider="groq",
+            base_url="https://api.groq.com/openai/v1",
+            api_key=os.environ.get("GROQ_API_KEY", ""),
+            model=model,
+        )

@@ -155,6 +155,36 @@ pipx inject kwaro fastapi uvicorn websockets
 
 Without the extra, `kwaro serve` prints an install hint instead of failing.
 
+## Providers (chat only)
+
+Scanning is fully static and offline. The chat agent needs a model, and kwaro
+supports two kinds with zero extra dependencies:
+
+- **Local (default, Ollama):** free, no API key, fully offline. Install Ollama, pull a
+  code model, then `kwaro init --provider ollama`.
+- **Groq (free API, no model pull):** if you don't want to download models, set a free
+  Groq key and kwaro uses it. No local setup.
+
+```bash
+# Groq (free tier, no local model needed)
+export GROQ_API_KEY=gsk_xxx
+kwaro init --provider groq          # writes provider=groq, key from env
+kwaro chat ./my-repo
+
+# Or set it in the environment only (no config write) and run:
+export GROQ_API_KEY=gsk_xxx
+kwaro chat ./my-repo                # auto-resolves groq from GROQ_API_KEY
+
+# Other OpenAI-compatible hosts work the same way (BYOK):
+#   openai, openrouter, together, deepseek - set the matching *_API_KEY env var,
+#   or put base_url + api_key in ~/.kwaro/config.toml.
+```
+
+The default model for Groq is `llama-3.3-70b-versatile` (a strong, free code model);
+override by editing `config.toml` (`model = "qwen-2.5-coder-32b"` for coding tasks).
+Local-first stays the documented default; Groq is the easy opt-in for users who don't
+want to manage local models.
+
 For development from source:
 
 ```bash
