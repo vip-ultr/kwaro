@@ -6,13 +6,43 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Planned (see docs/roadmap.md)
-- Providers: Ollama + OpenAI-compatible adapter (Phase 2)
-- Static analyzers + generic profile (Phase 3)
-- Pipeline + PoC generate-only (Phase 4)
-- CLI: scan, SARIF/JSON export, diff-aware rescan (Phase 5)
-- Browser UI: serve + finding cards + live activity (Phase 6)
-- Docs, tests, PyPI release (Phase 7)
+### Planned
+- Taint tables for Go, Java, then Solidity AST rules (reentrancy, tx-origin,
+  unchecked math) and C/C++ (buffer/integer) via the `kwaro[ast]` extra.
+- Model-driven prove step: Ollama/BYOK providers write real PoCs that the
+  sandbox executor then runs (offline placeholder stays the default).
+- CI/CD guard mode (`--diff` + SARIF to GitHub code scanning).
+
+## [0.7.0] - 2026-08-24
+
+### Added - real analysis depth (`kwaro[ast]` extra)
+- Phase 8A: tree-sitter AST layer, `kwaro/ast/parser.py` (lazy per-extension
+  parser cache; falls back to regex when the extra is absent - CLI stays zero-dep).
+- Rust/Solana rules: missing signer check (CWE-862), missing ownership check
+  (CWE-284), unchecked arithmetic (CWE-190). Enabled in the blockchain profile;
+  verified on a seeded vulnerable Solana program.
+- Phase 8B: intraprocedural taint tracking (`kwaro/ast/taint.py`) for Python and
+  JS/TS: untrusted input reaching SQL/shell/eval/DOM sinks, sanitizer-aware
+  (int(), parameterized queries, parseInt, encodeURIComponent). Registered as
+  analyzer `taint_ast`; enabled in generic + fintech profiles.
+
+### Added - verify loop closes for real
+- Phase 8C: sandbox PoC executor (`kwaro scan --execute-pocs`, implies `--pocs`):
+  runs generated PoCs in an isolated temp dir with network disabled at the socket
+  layer, wall-clock timeout, and output caps. VERIFIED requires exit 0 + explicit
+  confirm marker; everything else is UNVERIFIED. A VERIFIED PoC updates the belief
+  math (Bayes + SPRT): seeded flows reach posterior 0.635 / SPRT REAL and are kept -
+  the first scan where kwaro keeps findings instead of honestly reporting 0.
+  Process-level sandbox, not a VM: run untrusted PoCs in a container for
+  adversarial targets.
+
+### Changed
+- One-env-var BYOK: `kwaro init --provider groq|ollama|auto`; known hosts (groq,
+  openai, openrouter, together, deepseek) resolve base URL + API key from their
+  standard env vars automatically. Groq default model llama-3.3-70b-versatile.
+- README coverage/honesty section updated; docs/coverage.md regenerated from evals.
+- Test suite grown from 35 to 52 tests (AST recall, taint recall + FP guards,
+  sandbox classification incl. network-block proof).
 
 ### Added (scaffold)
 - Repository, folder structure, AGPL-3.0 license.
