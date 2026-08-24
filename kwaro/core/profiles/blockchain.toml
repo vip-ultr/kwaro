@@ -1,7 +1,7 @@
 name = "blockchain"
 description = "Solidity/blockchain scanning: reentrancy, overflow, signature replay, oracle risk."
 cwe_focus = ["CWE-841", "CWE-682", "CWE-347", "CWE-829"]
-enable = ["secrets", "injection", "auth"]
+enable = ["secrets", "injection", "auth", "rust_solana"]
 
 [triage]
 system = """

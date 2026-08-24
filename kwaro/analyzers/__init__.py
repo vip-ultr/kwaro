@@ -11,6 +11,15 @@ from typing import List, Optional
 from .base import Analyzer, Rule, REGISTRY, register, scan_file
 from . import secrets, injection, xss, traversal, auth  # noqa: F401  (populates REGISTRY)
 
+# AST-mode analyzer (kwaro[ast] extra). Import is lazy-safe: rust_solana pulls
+# tree-sitter only when it actually parses an .rs file; without the extra its
+# scan() returns [] and regex analyzers still run. Registered into the SAME
+# registry so profiles/pipeline need no special-casing.
+try:  # noqa: F401
+    from ..ast.rules import rust_solana  # populates REGISTRY with rust_solana
+except ImportError:
+    pass
+
 __all__ = ["Analyzer", "Rule", "REGISTRY", "register", "scan_file",
            "secrets", "injection", "xss", "traversal", "auth"]
 

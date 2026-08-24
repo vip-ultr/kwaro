@@ -16,7 +16,7 @@ Status legend: `shipped` (eval green), `partial`, `planned`.
 | PHP | regex | secrets, SQLi, XSS, traversal | shipped |
 | Solidity | regex | secrets | shipped |
 | Rust | regex | secrets, weak crypto | shipped |
-| Rust (Solana) | ast (planned) | missing signer check, missing ownership check, unchecked arithmetic, account confusion | planned |
+| Rust (Solana) | ast | missing signer check, missing ownership check, unchecked arithmetic | shipped (Phase A, eval green) |
 | Python | ast (planned) | + taint: source -> sink (SQL/Shell/XSS) | planned |
 | JavaScript/TS | ast (planned) | + taint (XSS/DOM, prototype pollution) | planned |
 | Go | ast (planned) | + taint | planned |

@@ -33,28 +33,23 @@ Read `docs/locked-decisions.md` (L1-L14). The ones that shape Phase 1 most:
 - L9 diff-aware rescan (git diff baseline / file-hash baseline)
 - L12 first-run `kwaro init` + static-only fallback
 
-## Where to start: Phase 8 - real multi-language depth (Phases 0-7 shipped)
+## Where to start: Phase 8 Phase A is SHIPPED - resume at Phase B (taint)
+
+Phase A (Rust/Solana AST depth) shipped and verified (2026-08-24 session):
+`kwaro/ast/` exists (parser.py lazy tree-sitter cache + rules/rust_solana.py with
+missing-signer, missing-ownership, unchecked-arithmetic). Seeded fixture at
+tests/fixtures/rust-solana/programs/vault/src/lib.rs; tests/test_phase8.py asserts
+recall + FP guard; suite 40/40 green; `kwaro scan --profile blockchain` returns real
+findings on the fixture. Without the `ast` extra the analyzer returns [] cleanly
+(verified by blocking tree_sitter imports) - zero-dep CLI intact.
 
 Phases 0-7 are DONE and verified (commits in git history) and kwaro is published to
 PyPI/Homebrew/Scoop. Do NOT rebuild the existing engine (core/, providers, analyzers/
-regex layer, chat, web, serve, packaging). The gap is ANALYSIS DEPTH: today's 5 regex
-rules return 0 on a Rust/Solana repo because they don't cover those vuln classes.
-Start here:
+regex layer, chat, web, serve, packaging).
 
-Goal (Phase 8): make kwaro credible on "any codebase" via tree-sitter AST + intra
-procedural taint (the `kwaro[ast]` extra), honest about the Semgrep-CE-class target.
-Full plan and architecture: `docs/plan-phase8.md`. Resume from there.
-
-Concrete tasks (in order; each ends runnable + verified on a seeded fixture):
-1. `kwaro/ast/parser.py` - lazy tree-sitter Parser cache per extension; falls back to
-   regex when the extra is absent. Add `ast` extra to pyproject (tree-sitter + grammars).
-2. `kwaro/ast/queries/` - Rust `.scm` queries for: missing signer check, missing ownership
-   check, unchecked arithmetic (overflow), account confusion.
-3. `kwaro/ast/rules/` - Rust/Solana rule defs consuming those queries; integrate into the
-   analyzer registry (regex mode OR ast mode, chosen at runtime).
-4. `tests/fixtures/rust-solana/` - seeded Solana program with one instance of each rule.
-   `tests/test_eval.py` asserts 100% recall on it (L13). This is the bar Rust is "done".
-5. Then Phase B (taint.py), Phase C (real PoC per L6), Phase D (docs/coverage.md matrix).
+Next: Phase B of docs/plan-phase8.md - intraprocedural taint (`kwaro/ast/taint.py`),
+then Phase C (real PoC execution per L6), Phase D (coverage matrix per-language eval).
+Language order after Rust: Python/JS -> Go -> Java -> Solidity -> C/C++/PHP.
 
 Honesty rules carried from the plan: no language claimed until its eval passes; we do not
 claim to beat CodeQL; regex stays the zero-dep default; `ast` is opt-in depth only.
